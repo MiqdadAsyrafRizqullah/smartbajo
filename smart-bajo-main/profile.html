@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil Tim Penggerak — Smart Bajo</title>
+  <link rel="stylesheet" href="css/style.css?v=2">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      background: var(--color-bg-primary);
+    }
+    /* Navbar is now in global style.css */
+
+    .profile-hero {
+      padding: 160px 5% 60px;
+      text-align: center;
+    }
+    .profile-hero h1 {
+      font-size: 40px;
+      margin-bottom: 16px;
+      color: var(--color-text-primary);
+    }
+    .profile-hero p {
+      color: var(--color-text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      max-width: 760px;
+      margin: 0 auto 100px;
+      padding: 0 5%;
+    }
+    @media (max-width: 600px) {
+      .profile-grid { grid-template-columns: 1fr; }
+    }
+    .profile-card {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+      border: 1px solid var(--color-border);
+      transition: transform 0.2s;
+    }
+    .profile-card:hover {
+      transform: translateY(-4px);
+    }
+    .profile-img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4/5;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-bottom: 20px;
+    }
+    .profile-name {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--color-text-primary);
+    }
+    .profile-role {
+      font-size: 14px;
+      color: var(--color-primary);
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .profile-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--color-text-muted);
+    }
+  </style>
+
+  <script>
+    if (localStorage.getItem('smartbajo_theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">
+    <img src="assets/images/logo.png" alt="Smart Bajo Logo" style="height: 64px; width: auto; object-fit: contain; transform: scale(1.4); margin-right: -4px;"> SMART BAJO
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Beranda</a>
+    <a href="index.html#fitur">Fitur AI-IoT</a>
+    <a href="index.html#solusi">Solusi Pesisir</a>
+    <a href="index.html#teknologi">Teknologi</a>
+    <a href="dokumentasi.html">Dokumentasi</a>
+    <a href="profile.html" class="active">Profil Tim</a>
+  </div>
+  <div class="nav-cta">
+    <a href="dashboard.html" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">Buka Dashboard <i data-lucide="arrow-right" style="width:16px;"></i></a>
+  </div>
+</nav>
+
+<section class="profile-hero">
+  <h1>Tim Penggerak & Peneliti</h1>
+  <p style="margin-bottom: 40px;">Mengenal lebih dekat para inovator di balik sistem pertanian hidroponik presisi untuk masyarakat pesisir Suku Bajo.</p>
+  <img src="assets/images/profile/52.png" alt="Tim Smart Bajo" style="width: 100%; max-width: 640px; border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.1); margin: 0 auto; display: block;">
+</section>
+
+<div style="max-width: 380px; margin: 48px auto;">
+  <!-- Card 1 (Leader) -->
+  <div class="profile-card">
+    <img src="assets/images/profile/47.png" alt="Peneliti" class="profile-img">
+    <div class="profile-name" style="font-size: 20px;">RIZAL ADI SAPUTRA, S.T., M.Kom.</div>
+    <div class="profile-role" style="line-height: 1.4;">VALIDATOR SAINTIFIK MULTIDISIPLINER<br>DAN MENTOR TEKNIS</div>
+  </div>
+</div>
+
+<section class="profile-grid">
+  <!-- Card 2 -->
+  <div class="profile-card">
+    <img src="assets/images/profile/48.png" alt="Peneliti" class="profile-img">
+    <div class="profile-name">MUHAMMAD RIZKY YAMIN</div>
+    <div class="profile-role" style="line-height: 1.4;">MANAJER PROYEK & AI ENGINEER</div>
+  </div>
+  <!-- Card 3 -->
+  <div class="profile-card">
+    <img src="assets/images/profile/49.png" alt="Peneliti" class="profile-img">
+    <div class="profile-name">GITA PRANGESTI</div>
+    <div class="profile-role" style="line-height: 1.4;">HARDWARE ENGINEER & FIELD INSTRUCTOR</div>
+  </div>
+  <!-- Card 4 -->
+  <div class="profile-card">
+    <img src="assets/images/profile/50.png" alt="Peneliti" class="profile-img">
+    <div class="profile-name">IBNU ZABIL SUDIRO</div>
+    <div class="profile-role" style="line-height: 1.4;">DATA ENGINEER & IMPACT ANALYST</div>
+  </div>
+  <!-- Card 5 -->
+  <div class="profile-card">
+    <img src="assets/images/profile/51.png" alt="Peneliti" class="profile-img">
+    <div class="profile-name">VYOLA CECILIA POTTO</div>
+    <div class="profile-role" style="line-height: 1.4;">UI/UX DEVELOPER & COMMUNITY FACILITATOR</div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="background-color: var(--color-bg-primary); padding: 48px 5%; border-top: 1px solid var(--color-border); margin-top: auto;">
+  <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 32px;">
+    
+    <div style="flex: 1; min-width: 300px;">
+      <a href="index.html" class="nav-brand" style="margin-bottom: 16px; display: inline-flex;">
+        <img src="assets/images/logo.png" alt="Smart Bajo Logo" style="height: 32px; width: auto; object-fit: contain; margin-right: 8px;"> SMART BAJO
+      </a>
+      <p style="color: var(--color-text-secondary); font-size: 14px; max-width: 300px; line-height: 1.6;">
+        Sistem monitoring pertanian apung presisi berbasis AI-IoT untuk masyarakat pesisir Suku Bajo, mendukung ketahanan pangan lokal.
+      </p>
+    </div>
+
+    <div style="flex: 1; min-width: 150px;">
+      <h4 style="margin-bottom: 16px; font-size: 16px;">Navigasi</h4>
+      <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+        <li><a href="index.html#beranda" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Beranda</a></li>
+        <li><a href="index.html#fitur" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Fitur AI-IoT</a></li>
+        <li><a href="index.html#solusi" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Solusi Pesisir</a></li>
+        <li><a href="index.html#teknologi" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Teknologi</a></li>
+      </ul>
+    </div>
+
+    <div style="flex: 1; min-width: 150px;">
+      <h4 style="margin-bottom: 16px; font-size: 16px;">Tautan Lainya</h4>
+      <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+        <li><a href="dashboard.html" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Buka Dashboard</a></li>
+        <li><a href="plant-health.html" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Plant Health AI</a></li>
+        <li><a href="index.html#dokumentasi" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Dokumentasi</a></li>
+        <li><a href="profile.html" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Profil Tim</a></li>
+      </ul>
+    </div>
+
+  </div>
+  <div style="max-width: 1200px; margin: 48px auto 0; padding-top: 24px; border-top: 1px solid var(--color-border); text-align: center; color: var(--color-text-muted); font-size: 14px;">
+    &copy; 2026 Smart Bajo System. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  lucide.createIcons();
+</script>
+</body>
+</html>

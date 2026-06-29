@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Smart Bajo IoT Monitoring</title>
+  <meta name="description" content="Dashboard monitoring real-time sensor IoT Bajo Smart Floating — pantau EC, suhu, NPK, TDS, ketinggian air, dan kelembaban udara rakit apung Suku Bajo.">
+  <link rel="stylesheet" href="css/style.css?v=2">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- MQTT.js for Real-time WebSockets -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Dashboard Layout */
+    .page-content {
+      padding: var(--space-xl);
+    }
+
+    /* Stats Row */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Sensor Grid */
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Charts Row */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Bottom Row */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+    }
+
+    /* Chart Canvas */
+    .chart-container {
+      position: relative;
+      height: 240px;
+    }
+
+    /* AI Prediction Banner */
+    .ai-banner {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(0, 255, 140, 0.05) 100%);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .ai-banner-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    .ai-banner-content { flex: 1; }
+
+    .ai-banner-title {
+      font-weight: 700;
+      font-size: var(--text-sm);
+      color: var(--color-text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .ai-banner-desc {
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .ai-badge {
+      background: var(--gradient-primary);
+      color: var(--color-bg-primary);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+    }
+
+    /* Log Feed */
+    .log-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .log-item:last-child { border-bottom: none; }
+
+    .log-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .log-text {
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    .log-time {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* NPK Bars */
+    .npk-item {
+      margin-bottom: var(--space-md);
+    }
+
+    .npk-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--text-xs);
+      margin-bottom: var(--space-xs);
+    }
+
+    /* Rakit Status */
+    .rakit-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm);
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--color-border);
+      margin-bottom: var(--space-xs);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .rakit-item:hover {
+      background: rgba(0, 212, 255, 0.05);
+      border-color: rgba(0, 212, 255, 0.2);
+    }
+
+    .rakit-id {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--color-text-muted);
+      width: 32px;
+      flex-shrink: 0;
+    }
+
+    .rakit-info { flex: 1; }
+    .rakit-name { font-size: var(--text-sm); font-weight: 600; }
+    .rakit-loc { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+    .rakit-temp {
+      font-family: var(--font-display);
+      font-size: var(--text-sm);
+      font-weight: 700;
+    }
+
+    /* Last update */
+    .last-update-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: rgba(0, 255, 140, 0.05);
+      border: 1px solid rgba(0, 255, 140, 0.1);
+      border-radius: var(--radius-md);
+      font-size: var(--text-xs);
+      color: var(--color-secondary);
+    }
+  </style>
+
+  <script>
+    if (localStorage.getItem('smartbajo_theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</head>
+<body>
+<div class="app-shell">
+  <div class="particles-container">
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+  </div>
+
+      <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo" onclick="window.location='index.html'" style="cursor: pointer;">
+      <img src="assets/images/logo.png" alt="Smart Bajo" style="height: 75px; width: auto; margin-right: 12px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(0,212,255,0.4));">
+      <div class="sidebar-logo-text">
+        <div class="sidebar-logo-name">SMART-BAJO</div>
+        <div class="sidebar-logo-sub">AI-IoT Monitoring</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Utama</div>
+      <a href="dashboard.html" class="sidebar-item active" id="nav-dashboard">
+        <div class="sidebar-item-icon"><i data-lucide="layout-dashboard"></i></div>
+        <span class="sidebar-item-label">Dashboard</span>
+      </a>
+      <a href="map.html" class="sidebar-item" id="nav-map">
+        <div class="sidebar-item-icon"><i data-lucide="map"></i></div>
+        <span class="sidebar-item-label">Peta Rakit</span>
+      </a>
+      <a href="sensor.html" class="sidebar-item" id="nav-sensor">
+        <div class="sidebar-item-icon"><i data-lucide="activity"></i></div>
+        <span class="sidebar-item-label">Detail Sensor</span>
+      </a>
+
+      <div class="sidebar-section-label">AI & Analitik</div>
+      <a href="plant-health.html" class="sidebar-item" id="nav-plant">
+        <div class="sidebar-item-icon"><i data-lucide="bot"></i></div>
+        <span class="sidebar-item-label">Plant Health AI</span>
+      </a>
+      <a href="lstm.html" class="sidebar-item" id="nav-lstm">
+        <div class="sidebar-item-icon"><i data-lucide="line-chart"></i></div>
+        <span class="sidebar-item-label">Prediksi LSTM</span>
+        <span class="sidebar-item-badge">AI</span>
+      </a>
+
+      <div class="sidebar-section-label">Sistem</div>
+      <a href="alerts.html" class="sidebar-item" id="nav-alerts">
+        <div class="sidebar-item-icon"><i data-lucide="bell"></i></div>
+        <span class="sidebar-item-label">Alert & Notifikasi</span>
+        <span class="sidebar-item-badge" id="alertBadge">3</span>
+      </a>
+      <a href="settings.html" class="sidebar-item" id="nav-settings">
+        <div class="sidebar-item-icon"><i data-lucide="settings"></i></div>
+        <span class="sidebar-item-label">Pengaturan</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">RY</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">M. Rizky Yamin</div>
+          <div class="sidebar-user-role">AI Engineer</div>
+        </div>
+        <i data-lucide="more-horizontal" style="color:var(--color-text-muted);flex-shrink:0;"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================ -->
+  <!-- MAIN CONTENT -->
+  <!-- ============================================ -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-title">
+        <h2>Dashboard</h2>
+        <p>Bajo Smart Floating — Kec. Soropia, Konawe, Sulawesi Tenggara</p>
+      </div>
+      <div class="header-actions">
+        <div class="last-update-wrap">
+          <span style="width:6px;height:6px;background:var(--color-secondary);border-radius:50%;animation:pulse-dot 2s infinite;display:inline-block;"></span>
+          Update: <span id="lastUpdate">Baru saja</span>
+        </div>
+        <div class="header-time" id="headerTime">--:--:--</div>
+        <div class="btn-icon" data-tooltip="Notifikasi" onclick="window.location='alerts.html'">
+          <i data-lucide="bell"></i>
+          <div class="badge"></div>
+        </div>
+        <div class="btn-icon" data-tooltip="Refresh" onclick="refreshData()">
+          <i data-lucide="refresh-cw" id="refreshIcon"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- AI Banner -->
+      <div class="ai-banner">
+        <div class="ai-banner-icon"><i data-lucide="cpu" style="width:28px;height:28px;color:var(--color-primary);"></i></div>
+        <div class="ai-banner-content">
+          <div class="ai-banner-title">
+            <span class="ai-badge">AI</span>
+            Prediksi LSTM 48 Jam: Konsentrasi EC optimal diprediksi turun ke 2.1 mS/cm pada 14:00 WITA
+          </div>
+          <div class="ai-banner-desc">Random Forest memperkirakan waktu panen optimal: <strong style="color:var(--color-secondary)">12-14 hari lagi</strong> · Anomali salinitas: <strong style="color:var(--color-secondary)">Tidak terdeteksi</strong></div>
+        </div>
+        <a href="sensor.html" class="btn btn-sm btn-secondary" style="flex-shrink:0;">Lihat Prediksi <i data-lucide="arrow-right" style="width:14px;"></i></a>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <!-- Total Rakit Aktif -->
+        <div class="stat-card" style="--stat-color:var(--color-secondary);--stat-glow:var(--color-secondary-glow);--stat-bg:rgba(0,255,140,0.08);--stat-border:rgba(0,255,140,0.2);">
+          <div class="stat-card-top">
+            <div class="stat-icon"><i data-lucide="ship"></i></div>
+            <span class="stat-badge up">+1 minggu ini</span>
+          </div>
+          <div class="stat-value" id="statRakit">6</div>
+          <div class="stat-label">Rakit Aktif</div>
+          <div class="stat-sub">
+            <i data-lucide="check-circle" style="width:12px;display:inline-block;"></i>
+            Terakhir sinkronisasi 30 detik lalu
+          </div>
+        </div>
+
+        <!-- Rata-rata EC -->
+        <div class="stat-card" style="--stat-color:var(--color-primary);--stat-glow:var(--color-primary-glow);--stat-bg:rgba(0,212,255,0.08);--stat-border:rgba(0,212,255,0.2);">
+          <div class="stat-card-top">
+            <div class="stat-icon"><i data-lucide="zap"></i></div>
+            <span class="stat-badge up">Normal</span>
+          </div>
+          <div class="stat-value" id="statEC">2.4</div>
+          <div class="stat-label">Rata-rata EC (mS/cm)</div>
+          <div class="stat-sub">Range ideal: 1.5–3.5 mS/cm</div>
+        </div>
+
+        <!-- Alert Aktif -->
+        <div class="stat-card" style="--stat-color:var(--color-warning);--stat-glow:var(--color-warning-glow);--stat-bg:rgba(255,184,0,0.08);--stat-border:rgba(255,184,0,0.2);">
+          <div class="stat-card-top">
+            <div class="stat-icon"><i data-lucide="alert-triangle"></i></div>
+            <span class="stat-badge warning">Perlu perhatian</span>
+          </div>
+          <div class="stat-value" id="statAlert">3</div>
+          <div class="stat-label">Alert Aktif</div>
+          <div class="stat-sub">1 kritis · 2 peringatan</div>
+        </div>
+
+        <!-- Kelembaban Rata-rata -->
+        <div class="stat-card" style="--stat-color:var(--color-purple);--stat-glow:var(--color-purple-glow);--stat-bg:rgba(168,85,247,0.08);--stat-border:rgba(168,85,247,0.2);">
+          <div class="stat-card-top">
+            <div class="stat-icon"><i data-lucide="cloud-rain"></i></div>
+            <span class="stat-badge up">Optimal</span>
+          </div>
+          <div class="stat-value" id="statHumid">76%</div>
+          <div class="stat-label">Kelembaban Udara</div>
+          <div class="stat-sub">Suhu udara: <span id="statAirTemp">31.2°C</span></div>
+        </div>
+      </div>
+
+      <!-- Sensor Cards Grid -->
+      <div class="sensor-grid">
+        <a href="sensor.html" class="sensor-card" style="--sensor-color:var(--color-primary);--sensor-bg:rgba(0,212,255,0.08);--sensor-border:rgba(0,212,255,0.2);--sensor-glow:rgba(0,212,255,0.1);">
+          <div class="sensor-icon-wrap">
+            <i data-lucide="zap"></i>
+            <div class="sensor-online-dot"></div>
+          </div>
+          <div class="sensor-info">
+            <div class="sensor-name">EC / Salinitas</div>
+            <div class="sensor-model">EC-J100 | Elektroda Titanium</div>
+          </div>
+          <div class="sensor-reading">
+            <div class="sensor-value" id="sensorEC">2.41</div>
+            <div class="sensor-unit">mS/cm</div>
+            <div class="sensor-status normal">Normal</div>
+          </div>
+        </a>
+
+        <a href="sensor.html" class="sensor-card" style="--sensor-color:var(--color-secondary);--sensor-bg:rgba(0,255,140,0.08);--sensor-border:rgba(0,255,140,0.2);--sensor-glow:rgba(0,255,140,0.1);">
+          <div class="sensor-icon-wrap">
+            <i data-lucide="thermometer"></i>
+            <div class="sensor-online-dot"></div>
+          </div>
+          <div class="sensor-info">
+            <div class="sensor-name">Suhu Air</div>
+            <div class="sensor-model">DS18B20 | Waterproof</div>
+          </div>
+          <div class="sensor-reading">
+            <div class="sensor-value" id="sensorTemp">28.5</div>
+            <div class="sensor-unit">°C</div>
+            <div class="sensor-status normal">Normal</div>
+          </div>
+        </a>
+
+        <a href="sensor.html" class="sensor-card" style="--sensor-color:var(--color-purple);--sensor-bg:rgba(168,85,247,0.08);--sensor-border:rgba(168,85,247,0.2);--sensor-glow:rgba(168,85,247,0.1);">
+          <div class="sensor-icon-wrap">
+            <i data-lucide="leaf"></i>
+            <div class="sensor-online-dot"></div>
+          </div>
+          <div class="sensor-info">
+            <div class="sensor-name">NPK (Nitrogen)</div>
+            <div class="sensor-model">NPK IoT | RS485 Modbus</div>
+          </div>
+          <div class="sensor-reading">
+            <div class="sensor-value" id="sensorN">182</div>
+            <div class="sensor-unit">mg/L</div>
+            <div class="sensor-status normal">Normal</div>
+          </div>
+        </a>
+
+        <a href="sensor.html" class="sensor-card" style="--sensor-color:var(--color-warning);--sensor-bg:rgba(255,184,0,0.08);--sensor-border:rgba(255,184,0,0.2);--sensor-glow:rgba(255,184,0,0.1);">
+          <div class="sensor-icon-wrap">
+            <i data-lucide="droplet"></i>
+            <div class="sensor-online-dot"></div>
+          </div>
+          <div class="sensor-info">
+            <div class="sensor-name">TDS Nutrisi</div>
+            <div class="sensor-model">TDS Sensor I2C | 0–9999 ppm</div>
+          </div>
+          <div class="sensor-reading">
+            <div class="sensor-value" id="sensorTDS">1420</div>
+            <div class="sensor-unit">ppm</div>
+            <div class="sensor-status normal">Normal</div>
+          </div>
+        </a>
+
+        <a href="sensor.html" class="sensor-card" style="--sensor-color:#00BFFF;--sensor-bg:rgba(0,191,255,0.08);--sensor-border:rgba(0,191,255,0.2);--sensor-glow:rgba(0,191,255,0.1);">
+          <div class="sensor-icon-wrap">
+            <i data-lucide="move-vertical"></i>
+            <div class="sensor-online-dot"></div>
+          </div>
+          <div class="sensor-info">
+            <div class="sensor-name">Ketinggian Air</div>
+            <div class="sensor-model">HC-SR04 | Ultrasonik</div>
+          </div>
+          <div class="sensor-reading">
+            <div class="sensor-value" id="sensorLevel">23</div>
+            <div class="sensor-unit">cm</div>
+            <div class="sensor-status normal">Normal</div>
+          </div>
+        </a>
+
+        <a href="sensor.html" class="sensor-card" style="--sensor-color:#FF9F43;--sensor-bg:rgba(255,159,67,0.08);--sensor-border:rgba(255,159,67,0.2);--sensor-glow:rgba(255,159,67,0.1);">
+          <div class="sensor-icon-wrap">
+            <i data-lucide="wind"></i>
+            <div class="sensor-online-dot"></div>
+          </div>
+          <div class="sensor-info">
+            <div class="sensor-name">Suhu & Kelembaban Udara</div>
+            <div class="sensor-model">BME280 | ±0.5°C / ±3% RH</div>
+          </div>
+          <div class="sensor-reading">
+            <div class="sensor-value" id="sensorBME">31.2</div>
+            <div class="sensor-unit">°C | <span id="sensorHumid">76</span>%</div>
+            <div class="sensor-status warning">Panas</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <!-- Main Chart -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Tren Sensor Real-time</div>
+              <div class="card-subtitle">Data 30 menit terakhir — Update setiap 10 detik</div>
+            </div>
+            <div class="flex gap-sm">
+              <button class="btn btn-ghost btn-sm" onclick="setChartRange('30m')" id="btn30m" style="opacity:1">30m</button>
+              <button class="btn btn-ghost btn-sm" onclick="setChartRange('1h')" id="btn1h">1h</button>
+              <button class="btn btn-ghost btn-sm" onclick="setChartRange('6h')" id="btn6h">6h</button>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="mainChart"></canvas>
+          </div>
+        </div>
+
+        <!-- NPK Bars -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Status NPK</div>
+              <div class="card-subtitle">Kadar hara makro saat ini</div>
+            </div>
+            <span class="badge badge-success">Optimal</span>
+          </div>
+
+          <div class="npk-item">
+            <div class="npk-label">
+              <span style="color:var(--color-secondary);font-weight:600;">🟢 Nitrogen (N)</span>
+              <span id="npkN" style="font-weight:700;">182 mg/L</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="barN" style="width:73%;background:linear-gradient(90deg,#00FF8C,#00CC70);"></div>
+            </div>
+            <div style="font-size:10px;color:var(--color-text-muted);margin-top:3px;">Optimal: 150–250 mg/L</div>
+          </div>
+
+          <div class="npk-item">
+            <div class="npk-label">
+              <span style="color:var(--color-primary);font-weight:600;">🔵 Fosfor (P)</span>
+              <span id="npkP" style="font-weight:700;">48 mg/L</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="barP" style="width:60%;background:linear-gradient(90deg,#00D4FF,#0066CC);"></div>
+            </div>
+            <div style="font-size:10px;color:var(--color-text-muted);margin-top:3px;">Optimal: 30–80 mg/L</div>
+          </div>
+
+          <div class="npk-item">
+            <div class="npk-label">
+              <span style="color:var(--color-warning);font-weight:600;">🟡 Kalium (K)</span>
+              <span id="npkK" style="font-weight:700;">210 mg/L</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="barK" style="width:84%;background:linear-gradient(90deg,#FFB800,#FF8C00);"></div>
+            </div>
+            <div style="font-size:10px;color:var(--color-text-muted);margin-top:3px;">Optimal: 100–300 mg/L</div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="card-title" style="font-size:var(--text-sm);margin-bottom:var(--space-sm);display:flex;align-items:center;gap:6px;"><i data-lucide="bot" style="width:16px;"></i> Rekomendasi AI</div>
+          <div style="background:rgba(0,255,140,0.05);border:1px solid rgba(0,255,140,0.15);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-md);">
+            <div style="font-size:var(--text-xs);color:var(--color-secondary);font-weight:600;display:flex;align-items:center;gap:4px;"><i data-lucide="check" style="width:14px;"></i> Semua parameter NPK dalam batas optimal</div>
+            <div style="font-size:10px;color:var(--color-text-muted);margin-top:2px;">LSTM prediksi: pertahankan dosing selama 18 jam ke depan</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row -->
+      <div class="bottom-row">
+        <!-- Rakit Status -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Status Rakit Apung</div>
+              <div class="card-subtitle">6 rakit di perairan Soropia</div>
+            </div>
+            <a href="map.html" class="btn btn-ghost btn-sm">Lihat Peta <i data-lucide="arrow-right" style="width:14px;"></i></a>
+          </div>
+
+          <div id="rakitList">
+            <!-- Dynamically filled -->
+          </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Log Aktivitas Sistem</div>
+              <div class="card-subtitle">Event terbaru real-time</div>
+            </div>
+            <a href="alerts.html" class="btn btn-ghost btn-sm">Semua <i data-lucide="arrow-right" style="width:14px;"></i></a>
+          </div>
+          <div id="activityLog"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  lucide.createIcons();
+
+  // ============================================
+  // TIME & CLOCK
+  // ============================================
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('headerTime').textContent = now.toLocaleTimeString('id-ID', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ============================================
+  // MOCK DATA
+  // ============================================
+  const SENSOR_DEFAULTS = {
+    ec: 2.41, temp: 28.5, n: 182, p: 48, k: 210, tds: 1420, level: 23, bme: 31.2, humid: 76
+  };
+
+  function rand(min, max, dec = 1) {
+    return parseFloat((Math.random() * (max - min) + min).toFixed(dec));
+  }
+
+  let currentData = { ...SENSOR_DEFAULTS };
+
+  // ============================================
+  // INFLUXDB CLOUD FETCH CONNECTION
+  // ============================================
+  // Kredensial rahasia (Sama dengan ESP32)
+  const INFLUX_URL = "https://us-east-1-1.aws.cloud2.influxdata.com/api/v2/query?org=miqdadwajo@gmail.com";
+  const INFLUX_TOKEN = "LoBd_3ful6J9nCpMHLeiVzXDCVyQO1cO28545-h0Gl695Ndls19mmz3ANfJZXXTvwzvAkhTliNCX_OWRHabD0Q==";
+
+  // Bahasa query Flux: Minta 10 menit terakhir, tabel 'monitoring', nilai paling ujung (last)
+  const fluxQuery = `
+    from(bucket: "smartbajo")
+      |> range(start: -10m)
+      |> filter(fn: (r) => r._measurement == "monitoring")
+      |> last()
+  `;
+
+  async function fetchInfluxData() {
+    try {
+      // Mengetuk pintu (Request) ke server InfluxDB
+      const response = await fetch(INFLUX_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Token ' + INFLUX_TOKEN,
+          'Content-Type': 'application/vnd.flux',
+          'Accept': 'application/csv'
+        },
+        body: fluxQuery
+      });
+
+      if (!response.ok) {
+        throw new Error('InfluxDB Error: ' + response.statusText);
+      }
+
+      // InfluxDB merespon dengan format tabel teks (CSV)
+      const csvData = await response.text();
+      const lines = csvData.split('\n');
+      
+      let fieldIdx = -1;
+      let valueIdx = -1;
+      let newData = false;
+
+      // Logika pembedah CSV cerdas
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const cols = line.split(',');
+        
+        // Mendeteksi baris judul kolom (Header)
+        if (cols.includes('_field') && cols.includes('_value')) {
+          fieldIdx = cols.indexOf('_field');
+          valueIdx = cols.indexOf('_value');
+          continue;
+        }
+
+        // Mendeteksi baris isi data (Abaikan baris komentar yg diawali #)
+        if (fieldIdx !== -1 && valueIdx !== -1 && !line.startsWith('#')) {
+          const field = cols[fieldIdx];
+          const value = parseFloat(cols[valueIdx]);
+          
+          if (!isNaN(value)) {
+            // Cocokkan field dari InfluxDB dengan nama variabel di Dashboard
+            if (field === 'suhu_air') currentData.temp = value;
+            if (field === 'ec') currentData.ec = value;
+            if (field === 'tds') currentData.tds = value;
+            if (field === 'suhu_udara') currentData.bme = value;
+            if (field === 'kelembaban') currentData.humid = value;
+            newData = true;
+          }
+        }
+      }
+
+      if (newData) {
+        // NPK saat ini tidak ada sensor aslinya, jadi disimulasikan dari nilai TDS
+        currentData.n = Math.round(currentData.tds * 0.12);
+        currentData.p = Math.round(currentData.tds * 0.03);
+        currentData.k = Math.round(currentData.tds * 0.15);
+        
+        // Paksa tampilan web dan grafik untuk update
+        updateSensorDOM();
+        updateChartsRealtime();
+      }
+
+    } catch (e) {
+      console.error("Gagal menarik data dari InfluxDB:", e);
+    }
+  }
+
+  // Lakukan penarikan saat web pertama dibuka, lalu ikuti interval dari Settings
+  fetchInfluxData();
+  
+  let fetchInterval = parseInt(localStorage.getItem('smartbajo_refresh')) || 5000;
+  let fetchTimer = setInterval(fetchInfluxData, fetchInterval);
+  
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'smartbajo_refresh') {
+      clearInterval(fetchTimer);
+      fetchInterval = parseInt(e.newValue) || 5000;
+      fetchTimer = setInterval(fetchInfluxData, fetchInterval);
+    }
+  });
+
+  function updateSensorDOM() {
+
+    // Update DOM
+    document.getElementById('sensorEC').textContent = currentData.ec;
+    document.getElementById('sensorTemp').textContent = currentData.temp;
+    document.getElementById('sensorN').textContent = currentData.n;
+    document.getElementById('sensorTDS').textContent = currentData.tds;
+    document.getElementById('sensorLevel').textContent = currentData.level;
+    document.getElementById('sensorBME').textContent = currentData.bme;
+    document.getElementById('sensorHumid').textContent = currentData.humid;
+    document.getElementById('statEC').textContent = currentData.ec;
+    document.getElementById('statHumid').textContent = currentData.humid + '%';
+    document.getElementById('statAirTemp').textContent = currentData.bme + '°C';
+
+    // NPK bars
+    document.getElementById('npkN').textContent = currentData.n + ' mg/L';
+    document.getElementById('npkP').textContent = currentData.p + ' mg/L';
+    document.getElementById('npkK').textContent = currentData.k + ' mg/L';
+    document.getElementById('barN').style.width = Math.min(100, (currentData.n / 250) * 100) + '%';
+    document.getElementById('barP').style.width = Math.min(100, (currentData.p / 80) * 100) + '%';
+    document.getElementById('barK').style.width = Math.min(100, (currentData.k / 300) * 100) + '%';
+
+    document.getElementById('lastUpdate').textContent = 'Baru saja';
+  }
+
+  // ============================================
+  // RAKIT LIST
+  // ============================================
+  const RAKITS = [
+    { id: 'R-01', name: 'Rakit Desa Bajo Indah', loc: 'Sektor A — Koordinat -3.85°, 122.45°', color: 'var(--color-secondary)', status: 'normal' },
+    { id: 'R-02', name: 'Rakit Desa Mekar', loc: 'Sektor B — Koordinat -3.87°, 122.46°', color: 'var(--color-secondary)', status: 'normal' },
+    { id: 'R-03', name: 'Rakit Desa Bajoe', loc: 'Sektor C — Koordinat -3.83°, 122.48°', color: 'var(--color-warning)', status: 'warning' },
+    { id: 'R-04', name: 'Rakit Desa Leppe', loc: 'Sektor D — Koordinat -3.89°, 122.44°', color: 'var(--color-secondary)', status: 'normal' },
+    { id: 'R-05', name: 'Rakit Desa Saponda', loc: 'Sektor E — Koordinat -3.91°, 122.43°', color: 'var(--color-secondary)', status: 'normal' },
+    { id: 'R-06', name: 'Rakit Desa Saponda Laut', loc: 'Sektor F — Koordinat -3.92°, 122.41°', color: 'var(--color-accent)', status: 'danger' },
+  ];
+
+  function renderRakitList() {
+    const container = document.getElementById('rakitList');
+    container.innerHTML = RAKITS.map(r => {
+      const temp = rand(26, 32);
+      const statusIcon = r.status === 'normal' ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--color-secondary);"></div>' : 
+                         r.status === 'warning' ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--color-warning);"></div>' : 
+                         '<div style="width:8px;height:8px;border-radius:50%;background:var(--color-accent);"></div>';
+      return `
+        <div class="rakit-item" onclick="window.location='sensor.html'">
+          <div class="rakit-id">${r.id}</div>
+          <div class="rakit-info">
+            <div class="rakit-name">${r.name}</div>
+            <div class="rakit-loc">${r.loc}</div>
+          </div>
+          <div class="rakit-temp" style="color:${r.color};display:flex;align-items:center;gap:6px;">${statusIcon} ${temp}°C</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ============================================
+  // ACTIVITY LOG
+  // ============================================
+  const LOGS = [
+    { color: 'var(--color-secondary)', text: 'Dosing pompa nutrisi Rakit R-01 aktif otomatis — AI trigger', time: '08:50:12' },
+    { color: 'var(--color-primary)', text: 'Sensor EC-J100 sinkronisasi data batch ke cloud InfluxDB', time: '08:49:45' },
+    { color: 'var(--color-warning)', text: 'Peringatan: Suhu udara BME280 di R-03 mencapai 34.8°C', time: '08:48:30' },
+    { color: 'var(--color-accent)', text: 'Alert kritis: Level air HC-SR04 di R-06 di bawah 15 cm', time: '08:47:11' },
+    { color: 'var(--color-purple)', text: 'Model LSTM selesai prediksi nutrisi 48 jam ke depan', time: '08:45:00' },
+    { color: 'var(--color-secondary)', text: 'Random Forest: Estimasi panen optimal 13 hari lagi', time: '08:44:55' },
+    { color: 'var(--color-primary)', text: 'Semua sensor R-02 online — MQTT handshake sukses', time: '08:43:20' },
+  ];
+
+  function renderActivityLog() {
+    const container = document.getElementById('activityLog');
+    container.innerHTML = LOGS.map(l => `
+      <div class="log-item">
+        <div class="log-dot" style="background:${l.color};"></div>
+        <div>
+          <div class="log-text">${l.text}</div>
+          <div class="log-time">${l.time} WITA</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ============================================
+  // CHART.JS
+  // ============================================
+  const labels = [];
+  const ecData = [], tempData = [], tdsData = [];
+
+  for (let i = 29; i >= 0; i--) {
+    const t = new Date(Date.now() - i * 60000);
+    labels.push(t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+    ecData.push(rand(1.8, 3.0));
+    tempData.push(rand(26, 31));
+    tdsData.push(rand(1100, 1600, 0));
+  }
+
+  const chartCtx = document.getElementById('mainChart').getContext('2d');
+  const mainChart = new Chart(chartCtx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'EC (mS/cm)',
+          data: ecData,
+          borderColor: '#00D4FF',
+          backgroundColor: 'rgba(0, 212, 255, 0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          borderWidth: 2,
+          yAxisID: 'yEC',
+        },
+        {
+          label: 'Suhu Air (°C)',
+          data: tempData,
+          borderColor: '#00FF8C',
+          backgroundColor: 'rgba(0, 255, 140, 0.06)',
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          borderWidth: 2,
+          yAxisID: 'yTemp',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      animation: { duration: 400 },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#8BACC8',
+            font: { family: 'Inter', size: 11 },
+            boxWidth: 12, boxHeight: 2, padding: 15
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(10, 22, 40, 0.95)',
+          borderColor: 'rgba(0, 212, 255, 0.3)',
+          borderWidth: 1,
+          titleColor: '#E8F4FF',
+          bodyColor: '#8BACC8',
+          padding: 10,
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#4A6580', font: { size: 10 }, maxTicksLimit: 8
+          }
+        },
+        yEC: {
+          position: 'left',
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#00D4FF', font: { size: 10 } },
+          min: 1.0, max: 4.0
+        },
+        yTemp: {
+          position: 'right',
+          grid: { display: false },
+          ticks: { color: '#00FF8C', font: { size: 10 } },
+          min: 24, max: 34
+        }
+      }
+    }
+  });
+
+  // Realtime chart update
+  function updateChartsRealtime() {
+    const now = new Date();
+    const label = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    mainChart.data.labels.push(label);
+    mainChart.data.datasets[0].data.push(currentData.ec);
+    mainChart.data.datasets[1].data.push(currentData.temp);
+    if (mainChart.data.labels.length > 30) {
+      mainChart.data.labels.shift();
+      mainChart.data.datasets[0].data.shift();
+      mainChart.data.datasets[1].data.shift();
+    }
+    mainChart.update('none');
+  }
+
+  // ============================================
+  // REFRESH
+  // ============================================
+  function refreshData() {
+    const icon = document.getElementById('refreshIcon');
+    icon.style.animation = 'spin 0.5s linear';
+    setTimeout(() => icon.style.animation = '', 500);
+    // Manual refresh relies on the next MQTT ping now, but we could trigger a publish here if needed
+  }
+
+  function setChartRange(range) {
+    ['30m','1h','6h'].forEach(r => document.getElementById('btn'+r).style.opacity = r === range ? '1' : '0.5');
+  }
+
+  // ============================================
+  // INIT
+  // ============================================
+  renderRakitList();
+  renderActivityLog();
+  // We no longer call setInterval, MQTT event handles updates!
+</script>
+<script>
+  // Generate abundant particles
+  document.addEventListener("DOMContentLoaded", () => {
+    const container = document.querySelector('.particles-container');
+    if (container) {
+      container.innerHTML = '';
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.classList.add('particle');
+        p.style.left = (Math.random() * 100) + '%';
+        p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        const size = (Math.random() * 4 + 2);
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        if (Math.random() > 0.5) p.style.boxShadow = '0 0 8px var(--color-secondary)', p.style.background = 'var(--color-secondary)';
+        container.appendChild(p);
+      }
+    }
+  });
+</script>
+</body>
+</html>

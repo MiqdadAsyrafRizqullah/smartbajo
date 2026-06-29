@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dokumentasi Kegiatan - Smart Bajo</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=2">
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      background: var(--color-bg-primary);
+    }
+    
+    /* Navbar is now in global style.css */
+
+    /* Dokumentasi Styles (Light Theme) */
+    .gallery-header {
+      padding: 160px 5% 60px;
+      text-align: center;
+    }
+    
+    .gallery-header h1 {
+      font-size: 40px;
+      margin-bottom: 16px;
+      color: var(--color-text-primary);
+    }
+    
+    .gallery-header p {
+      font-size: 16px;
+      color: var(--color-text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .gallery-section {
+      max-width: 1200px;
+      margin: 0 auto 80px;
+      padding: 0 5%;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-desc {
+      font-size: 15px;
+      color: var(--color-text-secondary);
+      margin-bottom: 32px;
+      line-height: 1.6;
+      max-width: 800px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .gallery-card {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+      border: 1px solid var(--color-border);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .gallery-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+      border-color: var(--color-primary);
+    }
+
+    .gallery-card img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .gallery-card:hover img {
+      transform: scale(1.05);
+    }
+
+    /* Modal untuk lihat foto full */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .modal.active {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal img {
+      max-width: 90%;
+      max-height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    .modal-close:hover {
+      background: rgba(255,255,255,0.2);
+      transform: rotate(90deg);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+
+  <script>
+    if (localStorage.getItem('smartbajo_theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</head>
+<body>
+  
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">
+      <img src="assets/images/logo.png" alt="Smart Bajo Logo" style="height: 64px; width: auto; object-fit: contain; transform: scale(1.4); margin-right: -4px;"> SMART BAJO
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Beranda</a>
+      <a href="index.html#fitur">Fitur AI-IoT</a>
+      <a href="index.html#solusi">Solusi Pesisir</a>
+      <a href="index.html#teknologi">Teknologi</a>
+      <a href="dokumentasi.html" class="active">Dokumentasi</a>
+      <a href="profile.html">Profil Tim</a>
+    </div>
+    <div class="nav-cta">
+      <a href="dashboard.html" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">Buka Dashboard <i data-lucide="arrow-right" style="width:16px;"></i></a>
+    </div>
+  </nav>
+
+  <header class="gallery-header">
+    <h1>Galeri Kegiatan KKN</h1>
+    <p>Rekam jejak implementasi Smart Bajo: Observasi, penyemaian cerdas, hingga membaur bersama masyarakat pesisir.</p>
+  </header>
+
+  <main>
+    <!-- Kategori 1 -->
+    <section class="gallery-section">
+      <h2 class="section-title"><i data-lucide="sprout" style="color: var(--color-primary)"></i> Pembibitan & Budidaya Hidroponik</h2>
+      <p class="section-desc">Proses persiapan *rockwool*, penyemaian benih sayuran di *tray*, hingga pertumbuhan bibit hijau di lahan hidroponik.</p>
+      <div class="gallery-grid">
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0531.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0546.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0547.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0551.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0552.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0553.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0559.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0578.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_ .jpg" loading="lazy"></div>
+      </div>
+    </section>
+
+    <!-- Kategori 2 -->
+    <section class="gallery-section">
+      <h2 class="section-title"><i data-lucide="map" style="color: var(--color-secondary)"></i> Survei Lapangan & Observasi Lanskap</h2>
+      <p class="section-desc">Pengukuran teknis area di pesisir menggunakan meteran lapangan, serta eksplorasi bukit yang menghadap lautan.</p>
+      <div class="gallery-grid">
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/ukur_IMG_7065.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/ukur_IMG_7066.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/ukur_IMG_7087.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/ukur_IMG_7088.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/ukur_IMG_7141.jpg" loading="lazy"></div>
+      </div>
+    </section>
+
+    <!-- Kategori 3 -->
+    <section class="gallery-section">
+      <h2 class="section-title"><i data-lucide="presentation" style="color: var(--color-warning)"></i> Sosialisasi Program Kerja</h2>
+      <p class="section-desc">Pemaparan program kerja teknologi IoT dan AI hidroponik bersama perangkat desa dan warga di Balai Desa.</p>
+      <div class="gallery-grid">
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0568.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/agro_IMG_0570.jpg" loading="lazy"></div>
+      </div>
+    </section>
+
+    <!-- Kategori 4 -->
+    <section class="gallery-section">
+      <h2 class="section-title"><i data-lucide="users" style="color: var(--color-accent)"></i> Pendekatan Sosial dengan Warga</h2>
+      <p class="section-desc">Menjalin keakraban dengan berbincang santai di pinggir dermaga laut dan bermain bersama anak-anak desa.</p>
+      <div class="gallery-grid">
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/walok_IMG_6563.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/walok_IMG_6579.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/walok_IMG_6580.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/walok_IMG_6587.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/walok_IMG_6588.jpg" loading="lazy"></div>
+        <div class="gallery-card" onclick="openModal(this)"><img src="assets/images/dokumentasi/walok_IMG_6590.jpg" loading="lazy"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Foto Full -->
+  <div id="imageModal" class="modal" onclick="closeModal()">
+    <button class="modal-close"><i data-lucide="x"></i></button>
+    <img id="modalImg" src="">
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Modal Logic
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImg');
+
+    function openModal(card) {
+      const imgSrc = card.querySelector('img').src;
+      modalImg.src = imgSrc;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden'; // cegah scrolling latar
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+      setTimeout(() => { modalImg.src = ''; }, 300);
+      document.body.style.overflow = 'auto';
+    }
+  </script>
+</body>
+</html>

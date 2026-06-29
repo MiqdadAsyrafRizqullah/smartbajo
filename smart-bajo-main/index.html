@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Bajo — Sistem Monitoring Pertanian Apung Berbasis AI-IoT</title>
+  <meta name="description" content="SMART-BAJO: Sustainable Marine Agriculture & Real-time Technology for Bajo. Sistem monitoring pertanian apung presisi berbasis AI-IoT untuk masyarakat pesisir Suku Bajo.">
+  <link rel="stylesheet" href="css/style.css?v=2">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ============================================
+       LANDING PAGE SPECIFIC
+       ============================================ */
+    body {
+      background: var(--color-bg-primary);
+      overflow-x: hidden;
+    }
+
+    /* Ocean Animated Background - Subtle */
+    .ocean-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .ocean-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(0, 255, 140, 0.03) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    /* Navbar is now in global style.css */
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      z-index: 1;
+      padding: 160px 5% 100px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+    
+    /* Hero Background Image */
+    .hero-bg-wrapper {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: -1;
+    }
+    .hero-bg-wrapper::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.6) 50%, rgba(15, 23, 42, 0.3) 100%);
+    }
+    .hero-bg-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .hero-content {
+      color: white;
+    }
+    .hero-content h1 {
+      font-size: 56px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      color: white;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .hero-content p {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 40px;
+      line-height: 1.6;
+      max-width: 90%;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .hero-tags {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .hero-tag {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .hero-tag .lucide { width: 14px; height: 14px; }
+    .hero-tag.ai { color: #00D4FF; border-color: rgba(0, 212, 255, 0.4); }
+    .hero-tag.iot { color: #00FF8C; border-color: rgba(0, 255, 140, 0.4); }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+    }
+    .btn-hero {
+      padding: 14px 28px;
+      font-size: 15px;
+      border-radius: 8px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+    }
+    .btn-hero.btn-secondary {
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .btn-hero.btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Mockup Dashboard */
+    .hero-visual {
+      position: relative;
+    }
+    .mockup-window {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transform: scale(1.15);
+      transform-origin: center;
+    }
+    .mockup-header {
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--color-border);
+      padding: 12px 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .mockup-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #334155;
+    }
+    .mockup-dot:nth-child(1) { background: #FF5A5F; }
+    .mockup-dot:nth-child(2) { background: #FFB800; }
+    .mockup-dot:nth-child(3) { background: #00FF8C; }
+
+    .mockup-body {
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+    }
+    .mockup-row-1 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .m-card {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .m-card-header {
+      display: flex;
+      justify-content: space-between;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+    .m-card-val {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      color: #0F172A;
+    }
+    .m-card-sub {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .m-chart-card {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 16px;
+      height: 160px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .m-chart-bars {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .m-bar {
+      flex: 1;
+      background: rgba(0, 212, 255, 0.1);
+      border-radius: 4px 4px 0 0;
+      position: relative;
+    }
+    .m-bar-fill {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: var(--color-primary);
+      border-radius: 4px 4px 0 0;
+      transition: height 1s ease;
+    }
+
+    /* Features Section */
+    .features {
+      padding: 100px 5%;
+      position: relative;
+      z-index: 1;
+      background: #FFFFFF;
+      border-top: 1px solid var(--color-border);
+    }
+    .section-title {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .section-title h2 {
+      font-size: 36px;
+      margin-bottom: 16px;
+    }
+    .section-title p {
+      color: var(--color-text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .feature-card {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      padding: 32px;
+      border-radius: 16px;
+      transition: transform 0.2s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.15);
+    }
+    .f-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--color-bg-tertiary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      color: var(--color-primary);
+    }
+    .feature-card h3 { font-size: 20px; margin-bottom: 12px; }
+    .feature-card p { font-size: 14px; line-height: 1.6; color: var(--color-text-secondary); }
+
+    .m-wave-chart {
+      height: 90px;
+      margin-top: 16px;
+      width: 100%;
+      overflow: hidden;
+    }
+    @keyframes waveMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+  </style>
+
+  <script>
+    if (localStorage.getItem('smartbajo_theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</head>
+<body>
+
+<!-- Background Image -->
+<div class="hero-bg-wrapper">
+  <img src="assets/images/bajo_hero.png" class="hero-bg-image" alt="Bajo Indah">
+</div>
+<div class="particles-container">
+  <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+  <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+  <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">
+    <img src="assets/images/logo.png" alt="Smart Bajo Logo" style="height: 64px; width: auto; object-fit: contain; transform: scale(1.4); margin-right: -4px;"> SMART BAJO
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="active">Beranda</a>
+    <a href="index.html#fitur">Fitur AI-IoT</a>
+    <a href="index.html#solusi">Solusi Pesisir</a>
+    <a href="index.html#teknologi">Teknologi</a>
+    <a href="#dokumentasi">Dokumentasi</a>
+    <a href="profile.html">Profil Tim</a>
+  </div>
+  <div class="nav-cta">
+    <a href="dashboard.html" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">Buka Dashboard <i data-lucide="arrow-right" style="width:16px;"></i></a>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero" id="beranda">
+  <div class="hero-content">
+    <div class="hero-tags">
+      <div class="hero-tag ai"><i data-lucide="bot"></i> AI Plant Health</div>
+      <div class="hero-tag iot"><i data-lucide="cpu"></i> IoT Presisi</div>
+    </div>
+    <h1>Monitoring Pertanian Hidroponik Suku Bajo</h1>
+    <p>
+      Sistem cerdas berbasis AI dan IoT untuk optimalisasi budidaya sayuran hidroponik pesisir laut.
+      Memantau nutrisi, salinitas, dan kesehatan tanaman secara real-time untuk memperkuat ketahanan pangan pesisir.
+    </p>
+    <div class="hero-buttons">
+      <a href="dashboard.html" class="btn btn-primary btn-hero">Akses Sistem <i data-lucide="arrow-right"></i></a>
+      <a href="#fitur" class="btn btn-secondary btn-hero">Pelajari Lebih Lanjut</a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="mockup-window">
+      <div class="mockup-header">
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <div style="margin-left:auto;font-size:11px;color:var(--color-text-muted);font-family:monospace;">live_monitoring_soropia</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-row-1">
+          <div class="m-card">
+            <div class="m-card-header"><span>EC Level</span> <i data-lucide="zap" style="color:var(--color-primary);width:14px;"></i></div>
+            <div class="m-card-val" id="demoEC">2.41</div>
+            <div class="m-card-sub" style="color:var(--color-secondary);">Optimal (mS/cm)</div>
+          </div>
+          <div class="m-card">
+            <div class="m-card-header"><span>Suhu Air</span> <i data-lucide="thermometer" style="color:var(--color-secondary);width:14px;"></i></div>
+            <div class="m-card-val" id="demoTemp">28.5°</div>
+            <div class="m-card-sub" style="color:var(--color-secondary);">Normal</div>
+          </div>
+          <div class="m-card">
+            <div class="m-card-header"><span>AI Prediksi</span> <i data-lucide="bot" style="color:var(--color-purple);width:14px;"></i></div>
+            <div class="m-card-val">96%</div>
+            <div class="m-card-sub" style="color:var(--color-text-muted);">Akurasi Panen</div>
+          </div>
+        </div>
+
+        <div class="m-chart-card">
+          <div class="m-card-header"><span>Kandungan Makro (NPK)</span> <i data-lucide="droplet" style="width:14px; color:var(--color-primary);"></i></div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 12px;">
+            <div style="text-align: center; padding: 12px; background: rgba(0,212,255,0.05); border-radius: 8px;">
+              <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px;">Nitrogen (N)</div>
+              <div id="demoN" style="font-family: var(--font-display); font-size: 28px; font-weight: 700; color: #00D4FF;">124</div>
+              <div style="font-size: 10px; color: var(--color-text-muted);">mg/L</div>
+            </div>
+            <div style="text-align: center; padding: 12px; background: rgba(0,255,140,0.05); border-radius: 8px;">
+              <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px;">Fosfor (P)</div>
+              <div id="demoP" style="font-family: var(--font-display); font-size: 28px; font-weight: 700; color: #00FF8C;">45</div>
+              <div style="font-size: 10px; color: var(--color-text-muted);">mg/L</div>
+            </div>
+            <div style="text-align: center; padding: 12px; background: rgba(255,184,0,0.05); border-radius: 8px;">
+              <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px;">Kalium (K)</div>
+              <div id="demoK" style="font-family: var(--font-display); font-size: 28px; font-weight: 700; color: #FFB800;">180</div>
+              <div style="font-size: 10px; color: var(--color-text-muted);">mg/L</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="fitur">
+  <div class="section-title">
+    <h2>Inovasi Teknologi Pesisir</h2>
+    <p>Dibangun khusus untuk mengatasi tantangan lingkungan perairan laut Suku Bajo, menggabungkan kecerdasan buatan dengan ketahanan perangkat keras.</p>
+  </div>
+  
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="f-icon"><i data-lucide="cpu"></i></div>
+      <h3>Real-time IoT Telemetry</h3>
+      <p>Pemantauan akurat dari sensor EC, Suhu, NPK, dan TDS yang dikirim secara nirkabel via MQTT ke arsitektur cloud InfluxDB, meminimalisir keterlambatan data.</p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-secondary);"><i data-lucide="brain-circuit"></i></div>
+      <h3>LSTM Prediction Engine</h3>
+      <p>Menggunakan Deep Learning untuk memprediksi penurunan konsentrasi nutrisi 48 jam ke depan, mencegah gagal panen sebelum terjadi.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-purple);"><i data-lucide="camera"></i></div>
+      <h3>MobileNetV2 Leaf Analysis</h3>
+      <p>AI pendeteksi penyakit tanaman melalui citra kamera. Mengidentifikasi defisiensi unsur hara dengan akurasi tinggi hanya dari sebuah foto daun.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-warning);"><i data-lucide="sun"></i></div>
+      <h3>Off-grid Solar Power</h3>
+      <p>Sistem cerdas ditenagai penuh oleh PLTS (Pembangkit Listrik Tenaga Surya), memastikan operasional 24/7 di tengah perairan tanpa infrastruktur listrik lokal.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-accent);"><i data-lucide="bell-ring"></i></div>
+      <h3>Automated Alerts & Dosing</h3>
+      <p>Notifikasi sistem terpadu yang dapat langsung memicu aktuator (pompa nutrisi) saat AI mendeteksi anomali pada larutan hidroponik.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="f-icon" style="color:#00BFFF;"><i data-lucide="map"></i></div>
+      <h3>Geospatial Mapping</h3>
+      <p>Pemetaan distribusi instalasi hidroponik pesisir secara visual, memudahkan pengelola memantau banyak lokasi sekaligus di sekitar area pantai.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Solusi Pesisir Section -->
+<section class="features" id="solusi" style="background-color: var(--color-bg-secondary);">
+  <div class="section-title">
+    <h2>Solusi Pesisir Suku Bajo</h2>
+    <p>Sistem ini dirancang khusus untuk menghadapi tantangan pertanian hidroponik di atas permukaan laut bagi masyarakat Suku Bajo.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-primary);"><i data-lucide="droplets"></i></div>
+      <h3>Ketahanan Salinitas</h3>
+      <p>Pemantauan level TDS dan EC secara prediktif membantu mengatasi dan mendeteksi resiko paparan garam laut pada sistem hidroponik pesisir.</p>
+    </div>
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-secondary);"><i data-lucide="sun"></i></div>
+      <h3>Kemandirian Energi</h3>
+      <p>Sistem IoT sepenuhnya digerakkan oleh tenaga surya (solar panel) yang memastikan operasional stabil walau tanpa jaringan listrik PLN.</p>
+    </div>
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-purple);"><i data-lucide="shield-check"></i></div>
+      <h3>Ketahanan Pangan</h3>
+      <p>Memungkinkan masyarakat pesisir mandiri memenuhi kebutuhan sayuran segar tanpa bergantung sepenuhnya pada pasokan dari daratan.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Teknologi Section -->
+<section class="features" id="teknologi">
+  <div class="section-title">
+    <h2>Teknologi AI & IoT</h2>
+    <p>Arsitektur sistem tangguh yang menggerakkan Smart Bajo dari ujung sensor (Edge) hingga ke Cloud.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-primary);"><i data-lucide="cpu"></i></div>
+      <h3>MobileNetV2 Edge AI</h3>
+      <p>Digunakan untuk Computer Vision guna mengklasifikasi kondisi daun sayuran dan mendeteksi defisiensi nutrisi secara presisi.</p>
+    </div>
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-secondary);"><i data-lucide="wifi"></i></div>
+      <h3>MQTT & Python Flask</h3>
+      <p>Komunikasi dua arah super ringan (MQTT) dari ESP32 menuju REST API Python Flask, memproses data dalam milidetik.</p>
+    </div>
+    <div class="feature-card">
+      <div class="f-icon" style="color:var(--color-warning);"><i data-lucide="database"></i></div>
+      <h3>Time-Series InfluxDB</h3>
+      <p>Penyimpanan data deret waktu yang optimal untuk membaca ratusan entri metrik sensor per menit tanpa memberatkan server.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Dokumentasi Section -->
+<section class="features" id="dokumentasi" style="background-color: var(--color-bg-secondary); padding-bottom: 64px;">
+  <div class="section-title">
+    <h2>Dokumentasi Kegiatan</h2>
+    <p>Sekilas tentang perjalanan kami menginstal dan menguji sistem hidroponik pesisir bersama masyarakat lokal Suku Bajo.</p>
+  </div>
+  <div class="gallery-grid" style="max-width: 1200px; margin: 0 auto; padding: 0 5%;">
+    <div class="gallery-card">
+      <img src="assets/images/dokumentasi/agro_IMG_0531.jpg" alt="Instalasi Agrotech">
+      <div class="gallery-card-info">
+        <h3>Kegiatan Instalasi Agrotech</h3>
+        <p>Proses perakitan dan instalasi pipa hidroponik serta pemasangan sensor pada wadah apung.</p>
+      </div>
+    </div>
+    <div class="gallery-card">
+      <img src="assets/images/dokumentasi/walok_IMG_6563.jpg" alt="Sesi Foto Walok">
+      <div class="gallery-card-info">
+        <h3>Sesi Bersama Masyarakat</h3>
+        <p>Sosialisasi dan pengenalan sistem kepada warga pesisir untuk mendukung ketahanan pangan mandiri.</p>
+      </div>
+    </div>
+    <div class="gallery-card">
+      <img src="assets/images/dokumentasi/ukur_IMG_7065.jpg" alt="Pengukuran Lokasi">
+      <div class="gallery-card-info">
+        <h3>Pengukuran Lokasi</h3>
+        <p>Survei kondisi perairan dan pengukuran kadar garam (salinitas) untuk penempatan instalasi optimal.</p>
+      </div>
+    </div>
+  </div>
+  <div style="text-align: center; margin-top: 48px;">
+    <a href="dokumentasi.html" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">Lihat Semua Dokumentasi <i data-lucide="arrow-right" style="width:16px;"></i></a>
+  </div>
+</section>
+
+<!-- Profil Tim Singkat -->
+<section style="padding: 80px 5%; background: var(--color-bg-secondary); border-top: 1px solid var(--color-border);">
+  <div style="max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 48px; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 300px;">
+      <div style="display: inline-block; padding: 6px 12px; background: rgba(0, 102, 255, 0.1); color: var(--color-primary); border-radius: 20px; font-weight: 600; font-size: 14px; margin-bottom: 16px;">Profil Penggerak</div>
+      <h2 style="font-size: 32px; margin-bottom: 16px; color: var(--color-text-primary);">Tim Inovator di Balik Smart Bajo</h2>
+      <p style="color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 32px; font-size: 16px;">Kenali lebih dekat kolaborasi multidisipliner dari para peneliti, engineer, dan fasilitator komunitas yang berkomitmen membangun ketahanan pangan di wilayah pesisir Suku Bajo.</p>
+      <a href="profile.html" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;">Lihat Profil Tim <i data-lucide="arrow-right" style="width: 18px;"></i></a>
+    </div>
+    <div style="flex: 1.2; min-width: 300px;">
+      <img src="assets/images/profile/52.png" alt="Tim Smart Bajo" style="width: 100%; border-radius: 16px; box-shadow: 0 24px 48px rgba(0,0,0,0.1);">
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="background-color: var(--color-bg-primary); padding: 48px 5%; border-top: 1px solid var(--color-border); margin-top: auto;">
+  <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 32px;">
+    
+    <div style="flex: 1; min-width: 300px;">
+      <a href="#" class="nav-brand" style="margin-bottom: 16px; display: inline-flex; align-items: center;">
+        <img src="assets/images/logo.png" alt="Smart Bajo Logo" style="height: 32px; width: auto; object-fit: contain; margin-right: 8px;"> SMART BAJO
+      </a>
+      <p style="color: var(--color-text-secondary); font-size: 14px; max-width: 300px; line-height: 1.6;">
+        Sistem monitoring pertanian apung presisi berbasis AI-IoT untuk masyarakat pesisir Suku Bajo, mendukung ketahanan pangan lokal.
+      </p>
+    </div>
+
+    <div style="flex: 1; min-width: 150px;">
+      <h4 style="margin-bottom: 16px; font-size: 16px;">Navigasi</h4>
+      <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+        <li><a href="#beranda" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Beranda</a></li>
+        <li><a href="#fitur" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Fitur AI-IoT</a></li>
+        <li><a href="#solusi" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Solusi Pesisir</a></li>
+        <li><a href="#teknologi" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Teknologi</a></li>
+      </ul>
+    </div>
+
+    <div style="flex: 1; min-width: 150px;">
+      <h4 style="margin-bottom: 16px; font-size: 16px;">Tautan Lainya</h4>
+      <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+        <li><a href="dashboard.html" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Buka Dashboard</a></li>
+        <li><a href="plant-health.html" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Plant Health AI</a></li>
+        <li><a href="#dokumentasi" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Dokumentasi</a></li>
+        <li><a href="profile.html" style="color: var(--color-text-secondary); text-decoration: none; font-size: 14px;">Profil Tim</a></li>
+      </ul>
+    </div>
+
+  </div>
+  <div style="max-width: 1200px; margin: 48px auto 0; padding-top: 24px; border-top: 1px solid var(--color-border); text-align: center; color: var(--color-text-muted); font-size: 14px;">
+    &copy; 2026 Smart Bajo System. All rights reserved.
+  </div>
+</footer>
+
+<!-- Init Lucide Icons -->
+<script>
+  lucide.createIcons();
+
+  // Simple animation for the mockup chart and values
+  function rand(min, max) {
+    return (Math.random() * (max - min) + min).toFixed(2);
+  }
+
+  setInterval(() => {
+    // Update text
+    document.getElementById('demoEC').textContent = rand(2.0, 3.0);
+    document.getElementById('demoTemp').textContent = rand(26, 31) + '°';
+    
+    // Update NPK values randomly for mockup
+    document.getElementById('demoN').textContent = Math.floor(Math.random() * 20 + 110);
+    document.getElementById('demoP').textContent = Math.floor(Math.random() * 10 + 40);
+    document.getElementById('demoK').textContent = Math.floor(Math.random() * 30 + 160);
+  }, 2500);
+</script>
+
+<script>
+  // Generate abundant particles
+  document.addEventListener("DOMContentLoaded", () => {
+    const container = document.querySelector('.particles-container');
+    if (container) {
+      container.innerHTML = '';
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.classList.add('particle');
+        p.style.left = (Math.random() * 100) + '%';
+        p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        const size = (Math.random() * 4 + 2);
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        if (Math.random() > 0.5) p.style.boxShadow = '0 0 8px var(--color-secondary)', p.style.background = 'var(--color-secondary)';
+        container.appendChild(p);
+      }
+    }
+  });
+
+  // Scrollspy for Navbar
+  document.addEventListener("DOMContentLoaded", () => {
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-links a');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= (sectionTop - 150)) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        const href = link.getAttribute('href');
+        if (current === 'beranda' && href === 'index.html') {
+          link.classList.add('active');
+        } else if (current && href.includes('#' + current)) {
+          link.classList.add('active');
+        } else if (!current && href === 'index.html') {
+          link.classList.add('active');
+        }
+      });
+    });
+
+    // Trigger once on load
+    window.dispatchEvent(new Event('scroll'));
+  });
+</script>
+</body>
+</html>

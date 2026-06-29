@@ -1,0 +1,711 @@
+﻿ntifikasi Lokasi 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Pembuatan Model AI 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Pembuatan Aplikasi Mobile 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Pembuatan Prototipe 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Testing Aplikasi dan Model AI 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Analisis & Optimalisasi Model AI 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Pembuatan Kerangka Apung di lokasi  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Pemasangan Sensor dan Testing Koneksi di Lokasi 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Penanaman Bibit dan Aktivasi Monitoring Lewat 
+Aplikasi 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Workshop Penggunaan dan Perawatan Alat oleh 
+Warga Lokal 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Evaluasi keberlanjutan proyek sosial 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 8 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+4. Indikator Keberhasilan Program selama Periode Proyek 
+Indikator keberhasilan program menunjukkan performa pengukuran dari proyek sosial selama 
+linimasa waktu yang diajukan.  
+No. Goals SDGs 
+Target SDGs 
+KPI Proyek Sosial 
+Dokumen 
+Validasi 
+Rencana 
+Monitoring 
+SDGs 2 Tanpa 
+Kelaparan 
+2.1 Pemenuhan 
+makanan yang aman dan 
+bergizi 
+Penurunan 
+Defisiensi Vit A/C 
+pada warga 
+Hasil 
+Pengukuran 
+Gizi UPTD 
+Puskesmas 
+Soropia 
+Pengukuran 
+angka stunting 
+sebelum dan 1 
+tahun setelah 
+implementasi 
+proyek 
+SDGs 2 Tanpa 
+Kelaparan 
+2.3 Produktivitas 
+Pertanian Kecil 
+Hasil Panen 
+1kg/­ØæÜ2/bulan 
+Pertanian Apung 
+Laporan 
+Panen Dinas 
+Pertanian 
+Sultra 
+Laporan Angka 
+Panen sebelum 
+dan 1 tahun 
+setelah 
+implementasi 
+proyek 
+SDGs 3 
+Kesehatan Baik 
+3.2 Kurangi Stunting 
+Angka Stunting 
+berada dibawah 
+20% 
+Hasil 
+Pengukuran 
+Gizi UPTD 
+Puskesmas 
+Soropia 
+Pengukuran 
+angka stunting 
+sebelum dan 1 
+tahun setelah 
+implementasi 
+proyek 
+SDGs 3 
+Kesehatan Baik 
+3.9 Penyakit Nutrisi 
+90% Tanaman sehat 
+via Deteksi AI 
+Log Deteksi 
+Penyakit 
+Aplikasi 
+Harian Real-Time 
+SDGs 9 Inovasi 
+Industri 
+9.4 Teknologi ramah 
+lingkungan 
+70% Warga paham 
+& pakai sistem 
+pertanian apung 
+berkelanjutan 
+Hasil 
+Pemantauan 
+Kerja Warga 
+dari Dinas 
+Pertanian 
+Sultra 
+Laporan Hasil 
+Pemantauan 
+Kerja Warga 3 
+bulan  setelah 
+implementasi 
+proyek 
+
+=== PAGE 9 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+SDGs 9 Inovasi 
+Industri 
+9.5 Kemampuan 
+Teknologi Lokal 
+70% Warga bisa 
+menggunakan 
+Aplikasi untuk foto 
+& diagnosis 
+Tanaman 
+Hasil 
+Pemantauan 
+pemakaian 
+Aplikasi dari 
+Dinas 
+Ketahanan 
+Pangan 
+Laporan hasil 
+pemantauan 
+pemakaian 
+aplikasi 3 bulan 
+setelah 
+implementasi 
+proyek 
+SDGs 12 Pola 
+Konsumsi dan 
+Produksi 
+12.2 Penggunaan 
+Sumber Daya 
+Berkelanjutan 
+Penggunaan nutrisi 
+NPK 30% lebih 
+efisien dibandingkan 
+metode konvensioal   
+Laporan 
+Pemantauan 
+Sensor EC 
+dari Dinas 
+Pertanian 
+Sultra 
+Hasil Pemantauan 
+Sensor EC setelah 
+2 minggu 
+implementasi 
+proyek 
+SDGs 14 
+Kehidupan 
+Bawah Air 
+14.2 Ekosistem Pantai 
+70% Warga Sadar 
+Nutrisi tidak dibuang 
+ke laut 
+Hasil 
+Kuisioner 
+pengetahuan 
+lingkungan 
+oleh Dinas 
+Pertanian 
+Sultra 
+Laporan Hasil 
+kuisioner 5 bulan 
+setelah 
+implementasi 
+proyek 
+ 
+ 
+
+=== PAGE 10 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+5. RENCANA ANGGARAN BIAYA (RAB) 
+Rencana Anggaran Biaya (RAB) menjelaskan dana yang dibutuhkan untuk mengimplementasikan 
+kegiatan atau aktivitas untuk mencapai indikator dampak dari proyek sosial. 
+A. Rencana Anggaran Proyek  
+NO 
+RINCIAN KEBUTUHAN 
+METODE 
+PENGHITUNGAN 
+JUMLAH 
+HARGA 
+SATUAN 
+HARGA TOTAL 
+ 
+a 
+b 
+c 
+d 
+e = c x d 
+1 
+Rakit HDPE + rangka 
+galvanis laut 
+Unit 
+1 
+Rp 5.200.000 
+Rp 5.200.000 
+2 
+Talang hidroponik 100 
+lubang + netpot + media 
+tanam 
+Paket 
+1 
+Rp 1.400.000 
+Rp 1.400.000 
+3 
+ESP32-WROOM-32 
+Unit 
+2 
+Rp 120.000 
+Rp 240.000 
+4 
+Sensor EC-J100  
+Unit 
+2 
+Rp 1.400.000 
+Rp 2.800.000 
+5 
+Sensor NPK IoT RS485 
+Unit 
+2 
+Rp 1.100.000 
+Rp 2.200.000 
+6 
+Sensor TDS 
+Unit 
+2 
+Rp 300.000 
+Rp 600.000 
+7 
+Sensor Suhu Air DS18B20 
+Unit 
+2 
+Rp 35.000 
+Rp 70.000 
+8 
+Sensor Ultrasonik HC-SR04 
+Unit 
+2 
+Rp 35.000 
+Rp 70.000 
+9 
+Sensor Udara BME280 
+Unit 
+2 
+Rp 100.000 
+Rp 200.000 
+10 
+Panel Surya ETFE 50W 
+Unit 
+2 
+Rp 1.300.000 
+Rp 2.600.000 
+11 
+MPPT Solar Controller 20A 
+Unit 
+2 
+Rp 450.000 
+Rp 900.000 
+12 
+Baterai LiFePO4 12V 20Ah 
+Unit 
+1 
+Rp 1.800.000 
+Rp 1.800.000 
+13 
+Box panel IP65 + wiring + 
+instalasi listrik 
+Paket 
+1 
+Rp 650.000 
+Rp 650.000 
+14 
+Pompa air DC marine anti 
+karat 
+Unit 
+1 
+Rp 850.000 
+Rp 850.000 
+15 
+Bibit sayuran (Bayam, 
+selada air dan kangkung) 
+Paket 
+2 
+Rp 250.000 
+Rp 500.000 
+16 
+Nutrisi hidroponik AB Mix 
+5 L 
+Set 
+2 
+Rp 125.000 
+Rp 250.000 
+17 
+VPS Cloud (MQTT + 
+InfluxDB + FastAPI) 
+Bulan 
+3 
+Rp 300.000 
+Rp 900.000 
+18 
+Domain dan SSL (1 tahun) 
+Paket 
+1 
+Rp 170.000 
+Rp 170.000 
+19 
+Perlengkapan perakitan 
+(PCB, timah solder, 
+konektor, casing) 
+Paket 
+1 
+Rp 900.000 
+Rp 900.000 
+20 
+Workshop & sosialisasi 
+warga 
+Kegiatan 
+1 
+Rp 1.500.000 
+Rp 1.500.000 
+21 
+Transportasi dan intalasi 
+lapangan 
+Paket 
+1 
+Rp 1.200.000 
+Rp 1.200.000 
+ 
+ 
+ 
+
+=== PAGE 11 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+B. Sumber Anggaran 
+No 
+Sumber Anggaran 
+Total Anggaran 
+Notes 
+1 
+KPP MINING Youth in Action 2 
+Rp 20.000.000 Pendanaan 
+utama 
+pengadaan 
+alat, 
+sistem 
+IoT, 
+dan 
+instalasi lapangan 
+2 
+Swadaya / Iuran Tim Pengusul 
+Rp 5.000.000 Kontribusi 
+pengembangan 
+sistem, operasional 
+teknis dan dukungan 
+kegiatan. 
+3 
+Lainnya 
+Rp 0 - 
+Total  
+Rp 25.000.000  
+ 
+ 
+
+=== PAGE 12 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+6. KEBERLANJUTAN PROYEK SOSIAL 
+Keberlanjutan proyek sosial menjelaskan rencana pengembangan serta pemeliharaan proyek 
+sosial agar dapat berlanjut setelah linimasa waktu pada proyek dalam proposal ini sudah berakhir. 
+Gambaran Keberlanjutan Proyek Sosial 
+Potensi keberlanjutan dari inovasi Bajo Smart Floating bertumpu pada integrasi kemandirian teknologi 
+dan penguatan modal sosial masyarakat Suku Bajo. Secara teknis, keberlanjutan dijamin melalui desain 
+perangkat yang bersifat modular dan low maintenance, di mana sistem bertenaga surya ini 
+meminimalisir biaya operasional bulanan bagi masyarakat. Dari aspek ekonomi, sistem ini menciptakan 
+ekosistem pangan sirkular, hasil panen sayuran gizi mikro tidak hanya digunakan untuk memenuhi 
+kebutuhan nutrisi keluarga rawan stunting, tetapi kelebihan produksinya dapat dikomersialkan ke pasar 
+lokal. Pendapatan yang dihasilkan kemudian dikelola melalui kas kelompok sebagai dana abadi 
+perawatan sensor dan infrastruktur IoT, sehingga tercipta kemandirian finansial tanpa ketergantungan 
+pada dana hibah. 
+ 
+Tindak lanjut pasca-proyek akan difokuskan pada proses transisi kendali dari tim pengembang 
+Informatika kepada komunitas lokal melalui pembentukan "Digital Bajo Community". Langkah ini 
+mencakup transfer pengetahuan intensif bagi pemuda desa di wilayah Mekar, Bajo Indah, Bajoe, Leppe, 
+dan Saponda untuk menjadi operator teknis yang mampu melakukan pemeliharaan mandiri. Secara 
+institusional, keberlanjutan akan diperkuat dengan mendorong pengintegrasian program ini ke dalam 
+Rencana Pembangunan Jangka Menengah Desa (RPJMDes) di masing-masing wilayah, sehingga 
+pengadaan unit rakit baru dapat didanai secara swadaya melalui alokasi Dana Desa bidang ketahanan 
+pangan. 
+ 
+Untuk masa depan, inovasi ini memiliki potensi replikasi dan scaling up yang masif mengingat 
+karakteristik geografis Suku Bajo yang tersebar luas di seluruh kepulauan Indonesia. Strategi ekspansi 
+dilakukan dengan melakukan standarisasi modul AI-IoT agar mudah diadaptasi di wilayah pesisir lain 
+dengan karakteristik salinitas yang berbeda. Potensi lanjutan juga terbuka lebar melalui kolaborasi 
+strategis dengan pihak swasta melalui skema Corporate Social Responsibility (CSR) perusahaan 
+telekomunikasi untuk penyediaan infrastruktur jaringan, serta kemitraan dengan kementerian terkait 
+untuk menjadikan proyek ini sebagai standar nasional pembangunan pemukiman pesisir tangguh iklim. 
+Dengan demikian, proyek ini tidak hanya berhenti sebagai sebuah inovasi teknologi, melainkan 
+bertransformasi menjadi gerakan sosial digital yang menjamin kedaulatan pangan dan kesehatan 
+masyarakat maritim secara permanen. 
+Pelaksana Keberlanjutan Proyek Sosial 
+Berikut ini adalah pelaksana keberlanjutan proyek sosial 
+1. Digital Bajo Community (Kelompok Tani Nelayan Digital): Unit swadaya masyarakat yang 
+terdiri dari pemuda dan warga lokal Suku Bajo yang telah dilatih untuk mengoperasikan, 
+merawat, dan memanen hasil pertanian apung secara mandiri. 
+2. Pemerintah Desa (Mekar, Bajo Indah, Bajoe, Leppe, dan Saponda): Bertindak sebagai 
+regulator lokal yang mengintegrasikan pemeliharaan infrastruktur IoT ke dalam anggaran 
+Dana Desa serta menjamin legalitas pemanfaatan ruang laut untuk rakit apung. 
+3. Puskesmas dan Kader Posyandu: Pelaksana pemantauan dampak kesehatan yang bertugas 
+mendistribusikan hasil panen kaya gizi mikro kepada kelompok prioritas (balita dan ibu hamil) 
+serta mencatat perkembangan status gizi warga. 
+
+=== PAGE 13 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+4. Tim Informatika (Developer/Supervisor): Berperan sebagai penyedia dukungan teknis jarak 
+jauh (remote technical support) dan pemeliharaan AI-IoT untuk memastikan sistem cerdas 
+tetap berjalan akurat dalam jangka panjang. 
+5. Kemitraan Strategis (Pihak Ketiga): Melibatkan Dinas Pertanian sebagai konsultan agronomi 
+berkelanjutan dan pihak swasta (CSR) sebagai pendukung pengembangan infrastruktur atau 
+skalabilitas proyek di masa depan. 
+ 
+ 
+7. LAMPIRAN 
+7.1 Arsitektur Sistem AI-IoT  (4 Layer) 
+Sensor ESP32 WiFi Edge -> Cloud MQTT -> Bajo-Health Application 
+  
+Gambar 7.1.1 Arsitektur 4-layer sistem AI-IoT Bajo-Smart Floating 
+ 
+ 
+ 
+
+=== PAGE 14 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+7.2 Blueprint Bajo-SmartFloating 
+BAJO-SMARTFLOATING | PHYSICAL LAYOUT BLUEPRINT | TAMPAK ATAS + SAMPING | SKALA 
+1:20 | REV 3.0 
+  
+SKEMA SISTEM PLTS OFF-GRID 
+   
+ 
+KOMPONEN 
+SPESIFIKASI TEKNIS 
+FUNGSI UTAMA 
+Rakit HDPE 
+HDPE PE-100, Pipa 450mm, 1,2m ├ù 
+2,4m Modular 
+Rangka apung tahan korosi laut 
+Mikrokontroler 
+ESP32-WROOM-32, 240MHz, WiFi 
+802.11 Built-in 
+Edge computing + transmisi 
+WiFi 
+Sensor EC / Sanilitas 
+EC-J100, Elektroda Titanium, 0-200 
+mS/cm 
+Pantau salinitas larutan nutrisi 
+Sensor Suhu Air 
+DS18B20 Waterproof, ┬▒0.5┬░C 
+Suhu larutan nutrisi hidroponik 
+Sensor NPK (in-line) 
+NPK IoT Sensor, RS485 Modbus 
+Hara N, P, K larutan real-time 
+Sensor TDS 
+TDS Sensor, 0-9999 ppm, ╬Ö2C 
+Total dissolved solids nutrisi 
+Sensor Ketinggian 
+HC-SR04, Ultrasonik, 2-400 cm 
+Monitoring evel larutan nutrisi 
+Sensor Udara  
+BME280, ┬▒0.5┬░c / ┬▒3% RH 
+Suhu & kelembapan udara 
+sekitar 
+
+=== PAGE 15 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+ 
+7.3 Flowchart Kontrol Otomatis & Logika AI 
+Kontrol Nutrisi Otomatis (AI-IoT) 
+Deteksi Penyakit Tanaman (Computer Vision) 
+ 
+ 
+7.4 Arsitektur CNN & Skenario Algoritma Machine Learning 
+PIPELINE CNN: MOBILE NET V2 (DETEKSI PENYAKIT & DEFISIENSI HARA DAUN SAYUR) 
+
+=== PAGE 16 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+ 
+NO 
+LSTM PREDIKSI NUTRISI (48 JAM) 
+RANDOM FOREST ESTIMASI PANEN & 
+ANOMALI 
+1. 
+Input: Data Sensor time-series: EC-J100, TDS, NPK, 
+DS18B20 (7 hari terakhir) 
+Input: Data pertumbuhan tanaman + 
+cuaca pesisir + sanilitas historis 
+2. 
+Feature Eng: Windowed sequences (T=48), 
+normalisasi MinMax 0-1 
+Model: Random Forest Regressor 
+untuk estimasi masa panen optimal 
+3. 
+Model: LSTM 2-layer (64 units -> 32 units) + Dense 
+output layer 
+Anomali: Isolation Forest untuk 
+deteksi lonjakan salinitas ekstrem 
+4. 
+Output: Prediksi konsentrasi EC & NPK optimal 48 
+jam kedepan 
+Output: Estimasi tanggal panen + alert 
+cuaca berbahaya (badai/pasang) 
+5. 
+Action: Trigger relay pompa dosing nutrisi via 
+ESP32 Rule engine 
+Notifikasi: Push alert ke warga via 
+WhatsApp Bot & Bajo-Health App 
+ 
+ 
+ 
+TOPOLOGI JARINGAN: WIFI 802.11 + MQTT OVER TLS (TANPA LORAWAN) 
+Lampiran lainnya tersedia di link google drive berikut: 
+https://drive.google.com/drive/folders/1Ix7vWXmobdgXyLp9vOyW-u0ojiR7sigC?usp=sharing 
+

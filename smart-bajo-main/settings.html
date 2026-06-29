@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengaturan — Smart Bajo IoT Monitoring</title>
+  <meta name="description" content="Dashboard monitoring real-time sensor IoT Bajo Smart Floating — pantau EC, suhu, NPK, TDS, ketinggian air, dan kelembaban udara rakit apung Suku Bajo.">
+  <link rel="stylesheet" href="css/style.css?v=2">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- MQTT.js for Real-time WebSockets -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Dashboard Layout */
+    .page-content {
+      padding: var(--space-xl);
+    }
+
+    /* Stats Row */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Sensor Grid */
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Charts Row */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Bottom Row */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+    }
+
+    /* Chart Canvas */
+    .chart-container {
+      position: relative;
+      height: 240px;
+    }
+
+    /* AI Prediction Banner */
+    .ai-banner {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(0, 255, 140, 0.05) 100%);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+
+    .ai-banner-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    .ai-banner-content { flex: 1; }
+
+    .ai-banner-title {
+      font-weight: 700;
+      font-size: var(--text-sm);
+      color: var(--color-text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .ai-banner-desc {
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .ai-badge {
+      background: var(--gradient-primary);
+      color: var(--color-bg-primary);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+    }
+
+    /* Log Feed */
+    .log-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .log-item:last-child { border-bottom: none; }
+
+    .log-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .log-text {
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    .log-time {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* NPK Bars */
+    .npk-item {
+      margin-bottom: var(--space-md);
+    }
+
+    .npk-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--text-xs);
+      margin-bottom: var(--space-xs);
+    }
+
+    /* Rakit Status */
+    .rakit-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm);
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--color-border);
+      margin-bottom: var(--space-xs);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .rakit-item:hover {
+      background: rgba(0, 212, 255, 0.05);
+      border-color: rgba(0, 212, 255, 0.2);
+    }
+
+    .rakit-id {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--color-text-muted);
+      width: 32px;
+      flex-shrink: 0;
+    }
+
+    .rakit-info { flex: 1; }
+    .rakit-name { font-size: var(--text-sm); font-weight: 600; }
+    .rakit-loc { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+    .rakit-temp {
+      font-family: var(--font-display);
+      font-size: var(--text-sm);
+      font-weight: 700;
+    }
+
+    /* Last update */
+    .last-update-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: rgba(0, 255, 140, 0.05);
+      border: 1px solid rgba(0, 255, 140, 0.1);
+      border-radius: var(--radius-md);
+      font-size: var(--text-xs);
+      color: var(--color-secondary);
+    }
+  </style>
+
+  <script>
+    if (localStorage.getItem('smartbajo_theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</head>
+<body>
+<div class="app-shell">
+  <div class="particles-container">
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+  </div>
+
+      <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo" onclick="window.location='index.html'" style="cursor: pointer;">
+      <img src="assets/images/logo.png" alt="Smart Bajo" style="height: 75px; width: auto; margin-right: 12px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(0,212,255,0.4));">
+      <div class="sidebar-logo-text">
+        <div class="sidebar-logo-name">SMART-BAJO</div>
+        <div class="sidebar-logo-sub">AI-IoT Monitoring</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Utama</div>
+      <a href="dashboard.html" class="sidebar-item" id="nav-dashboard">
+        <div class="sidebar-item-icon"><i data-lucide="layout-dashboard"></i></div>
+        <span class="sidebar-item-label">Dashboard</span>
+      </a>
+      <a href="map.html" class="sidebar-item" id="nav-map">
+        <div class="sidebar-item-icon"><i data-lucide="map"></i></div>
+        <span class="sidebar-item-label">Peta Rakit</span>
+      </a>
+      <a href="sensor.html" class="sidebar-item" id="nav-sensor">
+        <div class="sidebar-item-icon"><i data-lucide="activity"></i></div>
+        <span class="sidebar-item-label">Detail Sensor</span>
+      </a>
+
+      <div class="sidebar-section-label">AI & Analitik</div>
+      <a href="plant-health.html" class="sidebar-item" id="nav-plant">
+        <div class="sidebar-item-icon"><i data-lucide="bot"></i></div>
+        <span class="sidebar-item-label">Plant Health AI</span>
+      </a>
+      <a href="lstm.html" class="sidebar-item" id="nav-lstm">
+        <div class="sidebar-item-icon"><i data-lucide="line-chart"></i></div>
+        <span class="sidebar-item-label">Prediksi LSTM</span>
+        <span class="sidebar-item-badge">AI</span>
+      </a>
+
+      <div class="sidebar-section-label">Sistem</div>
+      <a href="alerts.html" class="sidebar-item" id="nav-alerts">
+        <div class="sidebar-item-icon"><i data-lucide="bell"></i></div>
+        <span class="sidebar-item-label">Alert & Notifikasi</span>
+        <span class="sidebar-item-badge" id="alertBadge">3</span>
+      </a>
+      <a href="settings.html" class="sidebar-item active" id="nav-settings">
+        <div class="sidebar-item-icon"><i data-lucide="settings"></i></div>
+        <span class="sidebar-item-label">Pengaturan</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">RY</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">M. Rizky Yamin</div>
+          <div class="sidebar-user-role">AI Engineer</div>
+        </div>
+        <i data-lucide="more-horizontal" style="color:var(--color-text-muted);flex-shrink:0;"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================ -->
+  <!-- MAIN CONTENT -->
+  <!-- ============================================ -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-title">
+        <h2>Pengaturan Sistem ⚙️</h2>
+        <p>Konfigurasi parameter sistem, notifikasi, dan preferensi akun Smart Bajo</p>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="grid-2" style="gap: var(--space-xl);">
+        
+        <!-- Account Settings -->
+        <div class="card">
+          <div class="card-title" style="margin-bottom: var(--space-md);">Profil Akun</div>
+          <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg);">
+            <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--gradient-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">
+              RY
+            </div>
+            <div>
+              <div style="font-weight: 700; font-size: var(--text-lg);">M. Rizky Yamin</div>
+              <div style="color: var(--color-text-muted); font-size: var(--text-sm);">AI Engineer</div>
+            </div>
+            <button class="btn btn-outline" style="margin-left: auto;">Edit Profil</button>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" value="rizky.yamin@smartbajo.id" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <button class="btn btn-outline" style="width: 100%;">Ubah Password</button>
+          </div>
+        </div>
+
+        <!-- System Settings -->
+        <div class="card">
+          <div class="card-title" style="margin-bottom: var(--space-md);">Preferensi Sistem</div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--color-border);">
+            <div>
+              <div style="font-weight: 600;">Dashboard Refresh Rate</div>
+              <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Interval pengambilan data dari InfluxDB ke layar</div>
+            </div>
+            <select id="refreshRateSelect" class="form-input" style="width: auto; padding-right: 32px;">
+              <option value="5000">Setiap 5 detik</option>
+              <option value="10000">Setiap 10 detik</option>
+              <option value="30000">Setiap 30 detik</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+            <div>
+              <div style="font-weight: 600;">Tema Tampilan</div>
+              <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Pilih tema antarmuka dashboard</div>
+            </div>
+            <select id="themeSelect" class="form-input" style="width: auto; padding-right: 32px;">
+              <option value="light">Terang (Light)</option>
+              <option value="dark">Gelap (Dark)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="card" style="grid-column: 1 / -1;">
+          <div class="card-title" style="margin-bottom: var(--space-md); color: var(--color-accent);">Zona Berbahaya</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+             <div>
+              <div style="font-weight: 600;">Hapus Cache Data Sensor</div>
+              <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Membersihkan cache lokal di browser (tidak menghapus data InfluxDB)</div>
+            </div>
+            <button class="btn" style="background: rgba(225, 29, 72, 0.1); color: var(--color-accent); border: 1px solid rgba(225, 29, 72, 0.2);">Bersihkan Cache</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+</main>
+</div>
+
+<script>
+  lucide.createIcons();
+</script>
+
+<script>
+  // Generate abundant particles
+  document.addEventListener("DOMContentLoaded", () => {
+    const container = document.querySelector('.particles-container');
+    if (container) {
+      container.innerHTML = '';
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.classList.add('particle');
+        p.style.left = (Math.random() * 100) + '%';
+        p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        const size = (Math.random() * 4 + 2);
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        if (Math.random() > 0.5) p.style.boxShadow = '0 0 8px var(--color-secondary)', p.style.background = 'var(--color-secondary)';
+        container.appendChild(p);
+      }
+    }
+  });
+</script>
+
+<script>
+  // Theme Management
+  const themeSelect = document.getElementById('themeSelect');
+  if (themeSelect) {
+    themeSelect.value = localStorage.getItem('smartbajo_theme') || 'light';
+    
+    themeSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      localStorage.setItem('smartbajo_theme', val);
+      if (val === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    });
+  }
+
+  // Refresh Rate Management
+  const refreshSelect = document.getElementById('refreshRateSelect');
+  if (refreshSelect) {
+    refreshSelect.value = localStorage.getItem('smartbajo_refresh') || '5000';
+    
+    refreshSelect.addEventListener('change', (e) => {
+      localStorage.setItem('smartbajo_refresh', e.target.value);
+    });
+  }
+</script>
+</body>
+</html>

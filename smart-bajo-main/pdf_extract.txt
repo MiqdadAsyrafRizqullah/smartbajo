@@ -1,0 +1,197 @@
+﻿o Smart Floating: Sistem Pertanian Apung Presisi Berbasis AI-IoT untuk 
+Penguatan Gizi Mikro Masyarakat Pesisir Suku Bajo 
+Lokasi 
+Kecamatan Soropia, Kabupaten Konawe, Sulawesi Tenggara 
+Deskripsi 
+Bajo-SmartFloating adalah inovasi pertanian apung presisi berbasis AI-IoT yang 
+dirancang khusus untuk memperkuat gizi mikro masyarakat pesisir Suku Bajo, 
+mengatasi keterbatasan lahan dengan memanfaatkan air tanpa bergantung 
+pada tanah di lingkungan laut ekstrem. Sistem ini mengintegrasikan sensor IoT 
+untuk memantau suhu, kelembaban, dan salinitas secara real-time, yang 
+dianalisis model AI guna memberikan rekomendasi optimal waktu penyiraman 
+serta pemberian nutrisi, sementara aplikasi mobile berbasis computer vision 
+memungkinkan deteksi dini penyakit atau defisiensi hara pada tanaman sayur 
+melalui foto daun memudahkan komunitas Bajo yang awam pertanian darat 
+mengelola kebun apung secara mandiri. Proyek ini mendukung ketahanan 
+pangan berkelanjutan dengan memanfaatkan keahlian maritim lokal. 
+Inovasi  
+Bajo-SmartFloating merupakan proyek baru yang akan dilaksanakan untuk 
+mengatasi tantangan pangan masyarakat Suku Bajo. Proyek ini belum berjalan 
+dan direncanakan sebagai implementasi inovasi pertanian apung presisi 
+pertama di lingkungan laut ekstrem Indonesia. Tidak ada sistem serupa yang 
+sudah ada sebelumnya untuk komunitas pesisir ini. Keterbaruan terletak pada 
+adaptasi teknologi AI-IoT untuk kebun apung tanpa tanah, khusus menargetkan 
+gizi mikro Suku Bajo dengan memanfaatkan keahlian maritim lokal. 
+ 
+Inovasi Utama: 
+
+=== PAGE 5 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+ÔÇó 
+Sensor Sanilitas & EC Industri  (EC-J100) 
+Menggunakan elektroda berbahan titanium untuk memantau kadar 
+garam pada larutan nutrisi agar tetap dalam ambang batas aman untuk 
+tanaman apung. 
+ÔÇó 
+AI-Driven Nutrient Monitoring 
+Sensor Nutrisi NPK IoT memantau ketersediaan unsur hara makro 
+(Nitrogen, Fosfor, Kalium) dalam larutan nutrisi secara langsung 
+dengan sistem (in-line) dan hidroponik terapung menggunakan sensor 
+ultrasonik HC-SR04 untuk memantau tinggi air, sensor suhu tahan air 
+DS18B20 untuk temperatur larutan nutrisi, serta sensor TDS (Total 
+Dissolved Solids) untuk kadar nutrisi Air. Sensor BME280 digunakan 
+untuk menguku suhu kelembapan udara di sekitar pertanian. Untuk 
+sanilitas dan konduktivitas nutrisi digunakan sensor EC/TDS. IoT 
+memantau suhu, kelembaban, dan salinitas secara real-time, dengan 
+model AI yang menganalisis data untuk rekomendasi presisi waktu 
+penyiraman dan nutrisi mengoptimalkan budidaya tanpa tanah di 
+perairan. 
+ÔÇó 
+Computer Vision for Plant Health 
+Aplikasi mobile berbasis AI mendeteksi penyakit atau defisiensi hara 
+melalui foto daun sayur dengan menganalisis citra daun tersebut 
+menggunakan model CNN (Convolutional Neural Network) terlatih 
+untuk mendeteksi penyakit atau defisiensi hara. Model di optimalkan 
+untuk perangkat mobile (melalui TensorFlow dan PyTorch Mobile). , 
+memungkinkan masyarakat suku bajo yang awam pertanian darat 
+mengidentifikasi masalah tanaman secara instan dan mandiri. 
+Jumlah Penerima 
+Manfaat 
+Penerima manfaat adalah masyarakat suku bajo yang terletak di Kecamatan 
+Soropia, Kabupaten Konawe dengan total 4.116 jiwa yang mendiami 6 desa 
+yakni Mekar 741, Bajo Indah 714, Bajoe 567, Leppe 780, Saponda 646, dan 
+Saponda Laut 668 (Sumber : Kecamatan Soropia dalam Angka oleh BPS Konawe 
+2024) 
+Sasaran Penerima 
+Manfaat 
+Sasaran penerima manfaat dalam inovasi ini mencakup spektrum yang luas, 
+mulai dari tingkat individu hingga sistemik. Sasaran utama atau penerima 
+manfaat primer adalah kelompok rentan di dalam komunitas Suku Bajo di Desa 
+Bajo Indah, khususnya ibu hamil, ibu menyusui, dan anak-anak balita yang 
+secara klinis memiliki risiko tertinggi terhadap defisiensi gizi mikro dan stunting 
+akibat pola makan yang didominasi protein laut tanpa asupan sayuran yang 
+memadai. Dengan adanya sistem ini, keluarga nelayan Suku Bajo dapat 
+memutus ketergantungan pada rantai pasok daratan yang mahal, sehingga 
+secara ekonomi mereka mampu menghemat pengeluaran logistik pangan 
+hingga 70%. Selain itu, para pemuda dan penggiat komunitas lokal juga akan 
+mendapatkan manfaat berupa peningkatan literasi digital melalui pengelolaan 
+sistem AI-IoT, yang memberikan mereka keterampilan baru di bidang pertanian 
+presisi maritim. 
+ 
+Secara lebih luas, penerima manfaat sekunder melibatkan sektor pemerintahan 
+dan kesehatan publik, di mana Dinas Kesehatan dan Puskesmas setempat akan 
+memiliki instrumen intervensi gizi yang konkret dan mandiri untuk menurunkan 
+
+=== PAGE 6 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+angka prevalensi malnutrisi di wilayah pesisir. Dalam jangka panjang, inovasi ini 
+memberikan manfaat bagi pemerintah pusat sebagai model percontohan 
+ketahanan pangan nasional yang adaptif terhadap perubahan iklim. Karena 
+sistem ini bersifat floating (terapung), ia tidak memerlukan pembukaan lahan 
+di daratan sehingga kelestarian ekosistem pesisir dan hutan mangrove tetap 
+terjaga. Pada akhirnya, keberhasilan proyek ini akan menempatkan Indonesia 
+sebagai pionir dalam penyediaan solusi pangan bagi komunitas maritim global 
+yang menghadapi ancaman serupa terkait kenaikan permukaan air laut 
+ 
+Kolaborator dalam 
+Proyek Sosial 
+Dinas Ketahanan Pangan Provinsi Sulawesi Tenggara, 
+Dinas Pertanian Provinsi Sulawesi Tenggara  
+UPTD Puskesmas Kecamatan Soropia 
+Tema Proyek Sosial 
+Ketahanan Pangan dan Gizi Berkelanjutan Berbasis Komunitas 
+Keterkaitan dengan 
+SDGs 
+(dapat mengaitkan 
+lebih dari 1 SDGs) 
+ÔÿÉ SDG 1: No Poverty 
+ÔÿÆ SDG 2: Zero Hunger 
+ÔÿÆ SDG 3: Good Health and Wellbeing 
+ÔÿÉ SDG 4: Quality Education 
+ÔÿÉ SDG 5: Gender Equality 
+ÔÿÉ SDG 6: Clean Water and Sanitation 
+ÔÿÉ SDG 7: Affordable and Clean Energy 
+ÔÿÉ SDG 8: Decent Work and Economic Growth 
+ÔÿÆ SDG 9: Industry, Innovation, and Infrastructure 
+ÔÿÉ SDG 10: Reduced Inequalities 
+ÔÿÉ SDG 11: Sustainable Cities and Communities 
+ÔÿÆ SDG 12: Responsible Consumption and Production 
+ÔÿÉ SDG 13: Climate Change 
+ÔÿÆ SDG 14: Life Below Water 
+ÔÿÉ SDG 15: Life on Land 
+ÔÿÉ SDG 16: Peace, Justice, and Strong Institutions 
+ÔÿÉ SDG 17: Partnership for the Goals 
+Target SDGs 
+2.1 : Pada tahun 2030, Hapuskan kelaparan dan pastikan akses bagi semua 
+orang, terutama orang miskin dan mereka yang berada dalam situasi rentan, 
+termasuk bayi, terhadap makanan yang aman, bergizi, dan cukup sepanjang 
+tahun 
+2.3 : Pada tahun 2030, tingkatkan dua kali lipat produktivitas pertanian dan 
+pendapatan produsen pangan skala kecil, khususnya perempuan, masyarakat 
+adat, petani keluarga, penggembala, dan nelayan, termasuk melalui akses yang 
+aman dan setara terhadap tanah, sumber daya produktif lainnya dan masukan, 
+pengetahuan, layanan keuangan, pasar, serta peluang untuk penambahan nilai 
+dan pekerjaan di luar sektor pertanian. 
+3.2 : Pada tahun 2030, hapuskan kematian bayi baru lahir dan anak-anak di 
+bawah usia 5 tahun yang dapat dicegah, dengan semua negara berupaya untuk 
+
+=== PAGE 7 ===
+                                                       
+ 
+    PROPOSAL KPP MINING YOUTH IN ACTION 2                
+ 
+ 
+mengurangi angka kematian neonatal setidaknya menjadi 12 per 1.000 
+kelahiran hidup dan angka kematian anak di bawah usia 5 tahun setidaknya 
+menjadi 25 per 1.000 kelahiran hidup. 
+3.9 : Pada tahun 2030, secara signifikan mengurangi jumlah kematian dan 
+penyakit yang disebabkan oleh bahan kimia berbahaya serta polusi dan 
+kontaminasi udara, air, dan tanah. 
+9.4 : Pada tahun 2030, tingkatkan infrastruktur dan modernisasi industri agar 
+menjadi berkelanjutan, dengan peningkatan efisiensi penggunaan sumber daya 
+dan penerapan yang lebih luas terhadap teknologi dan proses industri yang 
+bersih dan ramah lingkungan, dengan semua negara mengambil tindakan 
+sesuai dengan kemampuan masing-masing. 
+9.5 : Meningkatkan penelitian ilmiah, meningkatkan kemampuan teknologi 
+sektor industri di semua negara, khususnya negara-negara berkembang, 
+termasuk dengan mendorong inovasi dan secara signifikan meningkatkan 
+jumlah tenaga kerja penelitian dan pengembangan per 1 juta penduduk serta 
+pengeluaran penelitian dan pengembangan baik dari sektor publik maupun 
+swasta hingga tahun 2030. 
+12.2 : Pada tahun 2030, capai pengelolaan berkelanjutan dan pemanfaatan 
+yang efisien dari sumber daya alam. 
+14.2 : Pada tahun 2020, kelola dan lindungi ekosistem laut dan pesisir secara 
+berkelanjutan untuk menghindari dampak negatif yang signifikan, termasuk 
+dengan memperkuat ketahanan mereka, serta mengambil tindakan untuk 
+pemulihannya guna mencapai lautan yang sehat dan produktif. 
+ 
+3. RINCIAN KEGIATAN & JADWAL PELAKSANAAN 
+Rincian kegiatan menjelaskan detail kegiatan atau aktivitas proyek sosial yang akan dijalankan 
+selama periode proyek sosial. 
+KegiatanW2 
+Apr 
+Mei 
+Jun 
+Minggu / week 
+W1 
+W2 
+W3 
+W4 
+W5 
+W1 
+W2 
+W3 
+W4 
+W1 
+W2 
+W3 
+W4 
+Sosialisasi Project dan Ide
