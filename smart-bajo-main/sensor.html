@@ -363,8 +363,8 @@
               <circle id="gaugeBME" cx="60" cy="60" r="50" fill="none" stroke="#FF9F43" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="120"/>
             </svg>
             <div class="gauge-value">
-              <div class="gauge-number" style="color:#FF9F43;"><span id="valBME">31.2</span><span style="font-size:14px">°C</span></div>
-              <div class="gauge-unit" id="valHumid" style="font-size:16px; font-weight:bold;">76%</div>
+              <div class="gauge-number" style="color:#FF9F43;"><span id="valBME">--</span><span style="font-size:14px">°C</span></div>
+              <div class="gauge-unit" id="valHumid" style="font-size:16px; font-weight:bold;">--%</div>
             </div>
           </div>
           <div class="gauge-model-badge">BME280</div>
@@ -479,20 +479,7 @@
     document.getElementById(id).style.strokeDashoffset = offset;
   }
 
-  async function updateGauges() {
-    let ec, temp, tds, level, airTemp, humid;
-    
-    try {
-      const res = await fetch('/api/sensors');
-      if (res.ok) {
-        const apiData = await res.json();
-        ec = apiData.ec;
-        temp = apiData.suhu_air;
-        tds = apiData.tds;
-        airTemp = apiData.suhu_udara;
-        humid = apiData.kelembaban;
-        level = 23; 
-      }
+  async function updateGauges() { /* Disabled dummy */ }
     } catch (e) {
       console.warn("Using mock data as API is not available", e);
       ec = rand(1.8, 3.2);
@@ -529,9 +516,9 @@
   for (let i = 29; i >= 0; i--) {
     const t = new Date(Date.now() - i * 60000);
     chartLabels.push(t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
-    chartDatasets.ec.push(rand(1.8, 3.0));
-    chartDatasets.temp.push(rand(26, 31));
-    chartDatasets.tds.push(rand(1100, 1600, 0));
+    chartDatasets.ec.push(0); //rand(1.8, 3.0));
+    chartDatasets.temp.push(0); //rand(26, 31));
+    chartDatasets.tds.push(0); //rand(1100, 1600, 0));
     chartDatasets.level.push(rand(18, 28, 0));
   }
 
@@ -614,32 +601,7 @@
   // ============================================
   // HISTORY TABLE
   // ============================================
-  function renderHistory() {
-    const tbody = document.getElementById('historyBody');
-    const rows = [];
-    for (let i = 0; i < 15; i++) {
-      const t = new Date(Date.now() - i * 120000);
-      const ec = rand(1.8, 3.2);
-      const temp = rand(26, 31);
-      const tds = Math.round(rand(1100, 1600, 0));
-      const level = Math.round(rand(18, 28, 0));
-      const airTemp = rand(29, 35);
-      const humid = Math.round(rand(60, 90, 0));
-      const status = ec < 1.5 || ec > 3.5 ? 'danger' : ec < 1.8 || ec > 3.2 ? 'warning' : 'normal';
-      const statusText = status === 'danger' ? '🔴 Kritis' : status === 'warning' ? '🟡 Waspada' : '🟢 Normal';
-      rows.push(`
-        <tr>
-          <td>${t.toLocaleTimeString('id-ID')}</td>
-          <td style="color:var(--color-primary);font-weight:600;">${ec}</td>
-          <td style="color:var(--color-secondary);font-weight:600;">${temp}</td>
-          <td style="color:var(--color-warning);font-weight:600;">${tds}</td>
-          <td style="color:#00BFFF;font-weight:600;">${level}</td>
-          <td style="color:#FF9F43;font-weight:600;">${airTemp}</td>
-          <td style="color:var(--color-purple);font-weight:600;">${humid}%</td>
-          <td><span class="sensor-status ${status}">${statusText}</span></td>
-        </tr>
-      `);
-    }
+  function renderHistory() { document.getElementById("historyBody").innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;\">Menunggu data...</td></tr>"; }
     tbody.innerHTML = rows.join('');
   }
 
@@ -647,7 +609,7 @@
   updateGauges();
   renderPredictions();
   renderHistory();
-  setInterval(() => { updateGauges(); }, 3000);
+  // setInterval removed for real data
 </script>
 <script>
   // Generate abundant particles
@@ -669,6 +631,12 @@
       }
     }
   });
+</script>
+<script>
+  setTimeout(() => {
+    const el = document.getElementById('lastUpdateTxt');
+    if(el) el.textContent = 'Live (MQTT)';
+  }, 1000);
 </script>
 </body>
 </html>
