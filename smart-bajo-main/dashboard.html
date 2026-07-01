@@ -29,7 +29,7 @@
     /* Sensor Grid */
     .sensor-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: var(--space-md);
       margin-bottom: var(--space-xl);
     }
@@ -37,7 +37,7 @@
     /* Charts Row */
     .charts-row {
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: 1fr;
       gap: var(--space-lg);
       margin-bottom: var(--space-xl);
     }
@@ -272,9 +272,9 @@
         <p>Bajo Smart Floating — Kec. Soropia, Konawe, Sulawesi Tenggara</p>
       </div>
       <div class="header-actions">
-        <div class="last-update-wrap">
-          <span style="width:6px;height:6px;background:var(--color-secondary);border-radius:50%;animation:pulse-dot 2s infinite;display:inline-block;"></span>
-          Update: <span id="lastUpdate">Baru saja</span>
+        <div class="last-update-wrap" style="background: rgba(0, 255, 140, 0.15); border: 1px solid rgba(0, 255, 140, 0.3); padding: 4px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px;">
+          <span style="width:8px;height:8px;background:var(--color-secondary);border-radius:50%;animation:pulse-dot 2s infinite;display:inline-block;"></span>
+          <span id="lastUpdate" style="color: var(--color-secondary); font-weight: 600; font-size: 13px;">Live Streaming</span>
         </div>
         <div class="header-time" id="headerTime">--:--:--</div>
         <div class="btn-icon" data-tooltip="Notifikasi" onclick="window.location='alerts.html'">
@@ -386,21 +386,7 @@
           </div>
         </a>
 
-        <a href="sensor.html" class="sensor-card" style="--sensor-color:var(--color-purple);--sensor-bg:rgba(168,85,247,0.08);--sensor-border:rgba(168,85,247,0.2);--sensor-glow:rgba(168,85,247,0.1);">
-          <div class="sensor-icon-wrap">
-            <i data-lucide="leaf"></i>
-            <div class="sensor-online-dot"></div>
-          </div>
-          <div class="sensor-info">
-            <div class="sensor-name">NPK (Nitrogen)</div>
-            <div class="sensor-model">NPK IoT | RS485 Modbus</div>
-          </div>
-          <div class="sensor-reading">
-            <div class="sensor-value" id="sensorN">182</div>
-            <div class="sensor-unit">mg/L</div>
-            <div class="sensor-status normal">Normal</div>
-          </div>
-        </a>
+        
 
         <a href="sensor.html" class="sensor-card" style="--sensor-color:var(--color-warning);--sensor-bg:rgba(255,184,0,0.08);--sensor-border:rgba(255,184,0,0.2);--sensor-glow:rgba(255,184,0,0.1);">
           <div class="sensor-icon-wrap">
@@ -418,21 +404,7 @@
           </div>
         </a>
 
-        <a href="sensor.html" class="sensor-card" style="--sensor-color:#00BFFF;--sensor-bg:rgba(0,191,255,0.08);--sensor-border:rgba(0,191,255,0.2);--sensor-glow:rgba(0,191,255,0.1);">
-          <div class="sensor-icon-wrap">
-            <i data-lucide="move-vertical"></i>
-            <div class="sensor-online-dot"></div>
-          </div>
-          <div class="sensor-info">
-            <div class="sensor-name">Ketinggian Air</div>
-            <div class="sensor-model">HC-SR04 | Ultrasonik</div>
-          </div>
-          <div class="sensor-reading">
-            <div class="sensor-value" id="sensorLevel">23</div>
-            <div class="sensor-unit">cm</div>
-            <div class="sensor-status normal">Normal</div>
-          </div>
-        </a>
+        
 
         <a href="sensor.html" class="sensor-card" style="--sensor-color:#FF9F43;--sensor-bg:rgba(255,159,67,0.08);--sensor-border:rgba(255,159,67,0.2);--sensor-glow:rgba(255,159,67,0.1);">
           <div class="sensor-icon-wrap">
@@ -471,60 +443,7 @@
           </div>
         </div>
 
-        <!-- NPK Bars -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Status NPK</div>
-              <div class="card-subtitle">Kadar hara makro saat ini</div>
-            </div>
-            <span class="badge badge-success">Optimal</span>
-          </div>
-
-          <div class="npk-item">
-            <div class="npk-label">
-              <span style="color:var(--color-secondary);font-weight:600;">🟢 Nitrogen (N)</span>
-              <span id="npkN" style="font-weight:700;">182 mg/L</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="barN" style="width:73%;background:linear-gradient(90deg,#00FF8C,#00CC70);"></div>
-            </div>
-            <div style="font-size:10px;color:var(--color-text-muted);margin-top:3px;">Optimal: 150–250 mg/L</div>
-          </div>
-
-          <div class="npk-item">
-            <div class="npk-label">
-              <span style="color:var(--color-primary);font-weight:600;">🔵 Fosfor (P)</span>
-              <span id="npkP" style="font-weight:700;">48 mg/L</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="barP" style="width:60%;background:linear-gradient(90deg,#00D4FF,#0066CC);"></div>
-            </div>
-            <div style="font-size:10px;color:var(--color-text-muted);margin-top:3px;">Optimal: 30–80 mg/L</div>
-          </div>
-
-          <div class="npk-item">
-            <div class="npk-label">
-              <span style="color:var(--color-warning);font-weight:600;">🟡 Kalium (K)</span>
-              <span id="npkK" style="font-weight:700;">210 mg/L</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="barK" style="width:84%;background:linear-gradient(90deg,#FFB800,#FF8C00);"></div>
-            </div>
-            <div style="font-size:10px;color:var(--color-text-muted);margin-top:3px;">Optimal: 100–300 mg/L</div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="card-title" style="font-size:var(--text-sm);margin-bottom:var(--space-sm);display:flex;align-items:center;gap:6px;"><i data-lucide="bot" style="width:16px;"></i> Rekomendasi AI</div>
-          <div style="background:rgba(0,255,140,0.05);border:1px solid rgba(0,255,140,0.15);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-md);">
-            <div style="font-size:var(--text-xs);color:var(--color-secondary);font-weight:600;display:flex;align-items:center;gap:4px;"><i data-lucide="check" style="width:14px;"></i> Semua parameter NPK dalam batas optimal</div>
-            <div style="font-size:10px;color:var(--color-text-muted);margin-top:2px;">LSTM prediksi: pertahankan dosing selama 18 jam ke depan</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bottom Row -->
+        <!-- Bottom Row -->
       <div class="bottom-row">
         <!-- Rakit Status -->
         <div class="card">
@@ -612,10 +531,6 @@
 
         // Dummy data for sensors not in ESP32 payload
         currentData.ec = parseFloat((currentData.tds / 640).toFixed(2)); // Rough estimation
-        currentData.n = Math.round(currentData.tds * 0.12);
-        currentData.p = Math.round(currentData.tds * 0.03);
-        currentData.k = Math.round(currentData.tds * 0.15);
-        currentData.level = 23 + Math.floor(Math.random() * 3);
         
         updateSensorDOM();
         updateChartsRealtime();
@@ -632,21 +547,13 @@
   function updateSensorDOM() {
     document.getElementById('sensorEC').textContent = currentData.ec;
     document.getElementById('sensorTemp').textContent = currentData.temp;
-    document.getElementById('sensorN').textContent = currentData.n;
     document.getElementById('sensorTDS').textContent = currentData.tds;
-    document.getElementById('sensorLevel').textContent = currentData.level;
     document.getElementById('sensorBME').textContent = currentData.bme;
     document.getElementById('sensorHumid').textContent = currentData.humid;
     document.getElementById('statEC').textContent = currentData.ec;
     document.getElementById('statHumid').textContent = currentData.humid + '%';
     document.getElementById('statAirTemp').textContent = currentData.bme + '°C';
 
-    document.getElementById('npkN').textContent = currentData.n + ' mg/L';
-    document.getElementById('npkP').textContent = currentData.p + ' mg/L';
-    document.getElementById('npkK').textContent = currentData.k + ' mg/L';
-    document.getElementById('barN').style.width = Math.min(100, (currentData.n / 250) * 100) + '%';
-    document.getElementById('barP').style.width = Math.min(100, (currentData.p / 80) * 100) + '%';
-    document.getElementById('barK').style.width = Math.min(100, (currentData.k / 300) * 100) + '%';
   }
 
   // ============================================
