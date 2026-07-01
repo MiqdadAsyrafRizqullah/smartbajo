@@ -516,7 +516,7 @@
     client.on('connect', function () {
       console.log("Berhasil terhubung ke HiveMQ via WebSocket!");
       client.subscribe(MQTT_TOPIC);
-      // text stays Live Streaming
+      document.getElementById('lastUpdate').textContent = 'Live (MQTT)';
     });
 
     client.on('message', function (topic, message) {
