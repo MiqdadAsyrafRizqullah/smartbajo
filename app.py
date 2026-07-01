@@ -87,7 +87,7 @@ def preprocess_image(image, target_size=(224, 224)):
     image = image.resize(target_size)
     img_array = np.array(image)
     img_array = np.expand_dims(img_array, axis=0)
-    img_array = img_array.astype('float32') / 255.0
+    img_array = img_array.astype('float32')
     return img_array
 
 @app.route('/')
