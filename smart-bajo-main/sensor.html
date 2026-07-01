@@ -354,41 +354,24 @@
 
         
 
-        <!-- Suhu Udara -->
+        <!-- Suhu & Kelembaban Udara -->
         <div class="gauge-card" style="--gauge-color:#FF9F43;--gauge-bg:rgba(255,159,67,0.08);--gauge-border:rgba(255,159,67,0.2);--gauge-glow:rgba(255,159,67,0.15);">
-          <div class="gauge-title" style="display:flex;align-items:center;gap:6px;"><i data-lucide="wind" style="width:18px;"></i> Suhu Udara</div>
+          <div class="gauge-title" style="display:flex;align-items:center;gap:6px;"><i data-lucide="wind" style="width:18px;"></i> Suhu & Kelembaban Udara</div>
           <div class="gauge-wrap">
             <svg class="gauge-svg" width="120" height="120">
               <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,159,67,0.1)" stroke-width="10"/>
-              <circle id="gaugeAirTemp" cx="60" cy="60" r="50" fill="none" stroke="#FF9F43" stroke-width="10" stroke-linecap="round"
-                stroke-dasharray="314" stroke-dashoffset="110"/>
+              <circle id="gaugeBME" cx="60" cy="60" r="50" fill="none" stroke="#FF9F43" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="120"/>
             </svg>
             <div class="gauge-value">
-              <div class="gauge-number" style="color:#FF9F43;" id="valAirTemp">31.2</div>
-              <div class="gauge-unit">°C</div>
+              <div class="gauge-number" style="color:#FF9F43;"><span id="valBME">31.2</span><span style="font-size:14px">°C</span></div>
+              <div class="gauge-unit" id="valHumid" style="font-size:16px; font-weight:bold;">76%</div>
             </div>
           </div>
           <div class="gauge-model-badge">BME280</div>
-          <div class="gauge-range">Optimal: 25–35°C</div>
+          <div class="gauge-range">Optimal: 25-35°C | 60-90% RH</div>
         </div>
 
-        <!-- Kelembaban -->
-        <div class="gauge-card" style="--gauge-color:var(--color-purple);--gauge-bg:rgba(168,85,247,0.08);--gauge-border:rgba(168,85,247,0.2);--gauge-glow:rgba(168,85,247,0.15);">
-          <div class="gauge-title" style="display:flex;align-items:center;gap:6px;"><i data-lucide="cloud-rain" style="width:18px;"></i> Kelembaban Udara</div>
-          <div class="gauge-wrap">
-            <svg class="gauge-svg" width="120" height="120">
-              <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(168,85,247,0.1)" stroke-width="10"/>
-              <circle id="gaugeHumid" cx="60" cy="60" r="50" fill="none" stroke="#A855F7" stroke-width="10" stroke-linecap="round"
-                stroke-dasharray="314" stroke-dashoffset="75"/>
-            </svg>
-            <div class="gauge-value">
-              <div class="gauge-number" style="color:var(--color-purple);" id="valHumid">76</div>
-              <div class="gauge-unit">%</div>
-            </div>
-          </div>
-          <div class="gauge-model-badge">BME280</div>
-          <div class="gauge-range">Optimal: 60–90% RH</div>
-        </div>
+        
       </div>
 
       <!-- Charts and Data -->
