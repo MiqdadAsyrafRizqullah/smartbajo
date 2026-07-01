@@ -579,116 +579,57 @@
   const SENSOR_DEFAULTS = {
     ec: 2.41, temp: 28.5, n: 182, p: 48, k: 210, tds: 1420, level: 23, bme: 31.2, humid: 76
   };
-
   function rand(min, max, dec = 1) {
     return parseFloat((Math.random() * (max - min) + min).toFixed(dec));
   }
-
   let currentData = { ...SENSOR_DEFAULTS };
 
-  // ============================================
-  // INFLUXDB CLOUD FETCH CONNECTION
-  // ============================================
-  // Kredensial rahasia (Sama dengan ESP32)
-  const INFLUX_URL = "https://us-east-1-1.aws.cloud2.influxdata.com/api/v2/query?org=miqdadwajo@gmail.com";
-  const INFLUX_TOKEN = "LoBd_3ful6J9nCpMHLeiVzXDCVyQO1cO28545-h0Gl695Ndls19mmz3ANfJZXXTvwzvAkhTliNCX_OWRHabD0Q==";
+  // ==========================================
+  // HIVEMQ WEBSOCKETS CONNECTION
+  // ==========================================
+  const MQTT_BROKER = "wss://broker.hivemq.com:8884/mqtt";
+  const MQTT_TOPIC = "smartnode/esp32_01/data";
 
-  // Bahasa query Flux: Minta 10 menit terakhir, tabel 'monitoring', nilai paling ujung (last)
-  const fluxQuery = `
-    from(bucket: "smartbajo")
-      |> range(start: -10m)
-      |> filter(fn: (r) => r._measurement == "monitoring")
-      |> last()
-  `;
+  function initMQTT() {
+    console.log("Menghubungkan ke HiveMQ...");
+    const client = mqtt.connect(MQTT_BROKER);
 
-  async function fetchInfluxData() {
-    try {
-      // Mengetuk pintu (Request) ke server InfluxDB
-      const response = await fetch(INFLUX_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Token ' + INFLUX_TOKEN,
-          'Content-Type': 'application/vnd.flux',
-          'Accept': 'application/csv'
-        },
-        body: fluxQuery
-      });
+    client.on('connect', function () {
+      console.log("Berhasil terhubung ke HiveMQ via WebSocket!");
+      client.subscribe(MQTT_TOPIC);
+      document.getElementById('lastUpdate').textContent = 'Live (MQTT)';
+    });
 
-      if (!response.ok) {
-        throw new Error('InfluxDB Error: ' + response.statusText);
-      }
-
-      // InfluxDB merespon dengan format tabel teks (CSV)
-      const csvData = await response.text();
-      const lines = csvData.split('\n');
-      
-      let fieldIdx = -1;
-      let valueIdx = -1;
-      let newData = false;
-
-      // Logika pembedah CSV cerdas
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        const cols = line.split(',');
+    client.on('message', function (topic, message) {
+      try {
+        const payload = JSON.parse(message.toString());
+        console.log("Data diterima:", payload);
         
-        // Mendeteksi baris judul kolom (Header)
-        if (cols.includes('_field') && cols.includes('_value')) {
-          fieldIdx = cols.indexOf('_field');
-          valueIdx = cols.indexOf('_value');
-          continue;
-        }
+        if (payload.air_temp_c !== undefined) currentData.bme = payload.air_temp_c;
+        if (payload.air_hum_pct !== undefined) currentData.humid = payload.air_hum_pct;
+        if (payload.water_temp_c !== undefined) currentData.temp = payload.water_temp_c;
+        if (payload.tds_ppm !== undefined) currentData.tds = payload.tds_ppm;
 
-        // Mendeteksi baris isi data (Abaikan baris komentar yg diawali #)
-        if (fieldIdx !== -1 && valueIdx !== -1 && !line.startsWith('#')) {
-          const field = cols[fieldIdx];
-          const value = parseFloat(cols[valueIdx]);
-          
-          if (!isNaN(value)) {
-            // Cocokkan field dari InfluxDB dengan nama variabel di Dashboard
-            if (field === 'suhu_air') currentData.temp = value;
-            if (field === 'ec') currentData.ec = value;
-            if (field === 'tds') currentData.tds = value;
-            if (field === 'suhu_udara') currentData.bme = value;
-            if (field === 'kelembaban') currentData.humid = value;
-            newData = true;
-          }
-        }
-      }
-
-      if (newData) {
-        // NPK saat ini tidak ada sensor aslinya, jadi disimulasikan dari nilai TDS
+        // Dummy data for sensors not in ESP32 payload
+        currentData.ec = parseFloat((currentData.tds / 640).toFixed(2)); // Rough estimation
         currentData.n = Math.round(currentData.tds * 0.12);
         currentData.p = Math.round(currentData.tds * 0.03);
         currentData.k = Math.round(currentData.tds * 0.15);
+        currentData.level = 23 + Math.floor(Math.random() * 3);
         
-        // Paksa tampilan web dan grafik untuk update
         updateSensorDOM();
         updateChartsRealtime();
+      } catch (e) {
+        console.error("Gagal mem-parsing data MQTT:", e);
       }
+    });
 
-    } catch (e) {
-      console.error("Gagal menarik data dari InfluxDB:", e);
-    }
+    client.on('error', function (error) {
+      console.error("MQTT Error:", error);
+    });
   }
 
-  // Lakukan penarikan saat web pertama dibuka, lalu ikuti interval dari Settings
-  fetchInfluxData();
-  
-  let fetchInterval = parseInt(localStorage.getItem('smartbajo_refresh')) || 5000;
-  let fetchTimer = setInterval(fetchInfluxData, fetchInterval);
-  
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'smartbajo_refresh') {
-      clearInterval(fetchTimer);
-      fetchInterval = parseInt(e.newValue) || 5000;
-      fetchTimer = setInterval(fetchInfluxData, fetchInterval);
-    }
-  });
-
   function updateSensorDOM() {
-
-    // Update DOM
     document.getElementById('sensorEC').textContent = currentData.ec;
     document.getElementById('sensorTemp').textContent = currentData.temp;
     document.getElementById('sensorN').textContent = currentData.n;
@@ -700,60 +641,40 @@
     document.getElementById('statHumid').textContent = currentData.humid + '%';
     document.getElementById('statAirTemp').textContent = currentData.bme + '°C';
 
-    // NPK bars
     document.getElementById('npkN').textContent = currentData.n + ' mg/L';
     document.getElementById('npkP').textContent = currentData.p + ' mg/L';
     document.getElementById('npkK').textContent = currentData.k + ' mg/L';
     document.getElementById('barN').style.width = Math.min(100, (currentData.n / 250) * 100) + '%';
     document.getElementById('barP').style.width = Math.min(100, (currentData.p / 80) * 100) + '%';
     document.getElementById('barK').style.width = Math.min(100, (currentData.k / 300) * 100) + '%';
-
-    document.getElementById('lastUpdate').textContent = 'Baru saja';
   }
 
   // ============================================
-  // RAKIT LIST
+  // RAKIT LIST & LOG
   // ============================================
   const RAKITS = [
     { id: 'R-01', name: 'Rakit Desa Bajo Indah', loc: 'Sektor A — Koordinat -3.85°, 122.45°', color: 'var(--color-secondary)', status: 'normal' },
     { id: 'R-02', name: 'Rakit Desa Mekar', loc: 'Sektor B — Koordinat -3.87°, 122.46°', color: 'var(--color-secondary)', status: 'normal' },
     { id: 'R-03', name: 'Rakit Desa Bajoe', loc: 'Sektor C — Koordinat -3.83°, 122.48°', color: 'var(--color-warning)', status: 'warning' },
     { id: 'R-04', name: 'Rakit Desa Leppe', loc: 'Sektor D — Koordinat -3.89°, 122.44°', color: 'var(--color-secondary)', status: 'normal' },
-    { id: 'R-05', name: 'Rakit Desa Saponda', loc: 'Sektor E — Koordinat -3.91°, 122.43°', color: 'var(--color-secondary)', status: 'normal' },
-    { id: 'R-06', name: 'Rakit Desa Saponda Laut', loc: 'Sektor F — Koordinat -3.92°, 122.41°', color: 'var(--color-accent)', status: 'danger' },
   ];
 
   function renderRakitList() {
     const container = document.getElementById('rakitList');
-    container.innerHTML = RAKITS.map(r => {
-      const temp = rand(26, 32);
-      const statusIcon = r.status === 'normal' ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--color-secondary);"></div>' : 
-                         r.status === 'warning' ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--color-warning);"></div>' : 
-                         '<div style="width:8px;height:8px;border-radius:50%;background:var(--color-accent);"></div>';
-      return `
+    container.innerHTML = RAKITS.map(r => `
         <div class="rakit-item" onclick="window.location='sensor.html'">
           <div class="rakit-id">${r.id}</div>
           <div class="rakit-info">
             <div class="rakit-name">${r.name}</div>
             <div class="rakit-loc">${r.loc}</div>
           </div>
-          <div class="rakit-temp" style="color:${r.color};display:flex;align-items:center;gap:6px;">${statusIcon} ${temp}°C</div>
         </div>
-      `;
-    }).join('');
+      `).join('');
   }
 
-  // ============================================
-  // ACTIVITY LOG
-  // ============================================
   const LOGS = [
-    { color: 'var(--color-secondary)', text: 'Dosing pompa nutrisi Rakit R-01 aktif otomatis — AI trigger', time: '08:50:12' },
-    { color: 'var(--color-primary)', text: 'Sensor EC-J100 sinkronisasi data batch ke cloud InfluxDB', time: '08:49:45' },
-    { color: 'var(--color-warning)', text: 'Peringatan: Suhu udara BME280 di R-03 mencapai 34.8°C', time: '08:48:30' },
-    { color: 'var(--color-accent)', text: 'Alert kritis: Level air HC-SR04 di R-06 di bawah 15 cm', time: '08:47:11' },
-    { color: 'var(--color-purple)', text: 'Model LSTM selesai prediksi nutrisi 48 jam ke depan', time: '08:45:00' },
-    { color: 'var(--color-secondary)', text: 'Random Forest: Estimasi panen optimal 13 hari lagi', time: '08:44:55' },
-    { color: 'var(--color-primary)', text: 'Semua sensor R-02 online — MQTT handshake sukses', time: '08:43:20' },
+    { color: 'var(--color-secondary)', text: 'Koneksi MQTT ke HiveMQ berhasil', time: 'Baru saja' },
+    { color: 'var(--color-primary)', text: 'Menerima data secara realtime...', time: 'Sistem' },
   ];
 
   function renderActivityLog() {
@@ -763,7 +684,7 @@
         <div class="log-dot" style="background:${l.color};"></div>
         <div>
           <div class="log-text">${l.text}</div>
-          <div class="log-time">${l.time} WITA</div>
+          <div class="log-time">${l.time}</div>
         </div>
       </div>
     `).join('');
@@ -773,14 +694,13 @@
   // CHART.JS
   // ============================================
   const labels = [];
-  const ecData = [], tempData = [], tdsData = [];
+  const ecData = [], tempData = [];
 
   for (let i = 29; i >= 0; i--) {
     const t = new Date(Date.now() - i * 60000);
     labels.push(t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
-    ecData.push(rand(1.8, 3.0));
-    tempData.push(rand(26, 31));
-    tdsData.push(rand(1100, 1600, 0));
+    ecData.push(0);
+    tempData.push(0);
   }
 
   const chartCtx = document.getElementById('mainChart').getContext('2d');
@@ -797,7 +717,6 @@
           fill: true,
           tension: 0.4,
           pointRadius: 0,
-          pointHoverRadius: 5,
           borderWidth: 2,
           yAxisID: 'yEC',
         },
@@ -809,7 +728,6 @@
           fill: false,
           tension: 0.4,
           pointRadius: 0,
-          pointHoverRadius: 5,
           borderWidth: 2,
           yAxisID: 'yTemp',
         }
@@ -818,49 +736,14 @@
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: { intersect: false, mode: 'index' },
-      animation: { duration: 400 },
-      plugins: {
-        legend: {
-          labels: {
-            color: '#8BACC8',
-            font: { family: 'Inter', size: 11 },
-            boxWidth: 12, boxHeight: 2, padding: 15
-          }
-        },
-        tooltip: {
-          backgroundColor: 'rgba(10, 22, 40, 0.95)',
-          borderColor: 'rgba(0, 212, 255, 0.3)',
-          borderWidth: 1,
-          titleColor: '#E8F4FF',
-          bodyColor: '#8BACC8',
-          padding: 10,
-        }
-      },
       scales: {
-        x: {
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: {
-            color: '#4A6580', font: { size: 10 }, maxTicksLimit: 8
-          }
-        },
-        yEC: {
-          position: 'left',
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#00D4FF', font: { size: 10 } },
-          min: 1.0, max: 4.0
-        },
-        yTemp: {
-          position: 'right',
-          grid: { display: false },
-          ticks: { color: '#00FF8C', font: { size: 10 } },
-          min: 24, max: 34
-        }
+        x: { ticks: { maxTicksLimit: 8 } },
+        yEC: { position: 'left', min: 0, max: 4.0 },
+        yTemp: { position: 'right', min: 20, max: 40 }
       }
     }
   });
 
-  // Realtime chart update
   function updateChartsRealtime() {
     const now = new Date();
     const label = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -875,26 +758,12 @@
     mainChart.update('none');
   }
 
-  // ============================================
-  // REFRESH
-  // ============================================
-  function refreshData() {
-    const icon = document.getElementById('refreshIcon');
-    icon.style.animation = 'spin 0.5s linear';
-    setTimeout(() => icon.style.animation = '', 500);
-    // Manual refresh relies on the next MQTT ping now, but we could trigger a publish here if needed
-  }
+  function refreshData() {}
+  function setChartRange(range) {}
 
-  function setChartRange(range) {
-    ['30m','1h','6h'].forEach(r => document.getElementById('btn'+r).style.opacity = r === range ? '1' : '0.5');
-  }
-
-  // ============================================
-  // INIT
-  // ============================================
   renderRakitList();
   renderActivityLog();
-  // We no longer call setInterval, MQTT event handles updates!
+  initMQTT();
 </script>
 <script>
   // Generate abundant particles
