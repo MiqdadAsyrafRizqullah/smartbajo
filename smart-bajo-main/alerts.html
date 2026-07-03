@@ -236,7 +236,18 @@
       </div>
       <div class="header-actions">
         <button class="btn btn-ghost btn-sm" onclick="markAllRead()"><i data-lucide="check-square" style="width:14px;"></i> Tandai Semua Dibaca</button>
+        <div class="last-update-wrap" style="background: rgba(0, 255, 140, 0.15); border: 1px solid rgba(0, 255, 140, 0.3); padding: 4px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px;">
+          <span style="width:8px;height:8px;background:var(--color-secondary);border-radius:50%;animation:pulse-dot 2s infinite;display:inline-block;"></span>
+          <span id="lastUpdateTxt" style="color: var(--color-secondary); font-weight: 600; font-size: 13px;">Live Streaming</span>
+        </div>
         <div class="header-time" id="headerTime">--:--:--</div>
+        <div class="btn-icon" data-tooltip="Notifikasi" onclick="window.location='alerts.html'">
+          <i data-lucide="bell"></i>
+          <div class="badge"></div>
+        </div>
+        <div class="btn-icon" data-tooltip="Refresh" onclick="window.location.reload()">
+          <i data-lucide="refresh-cw" id="refreshIcon"></i>
+        </div>
       </div>
     </header>
 
@@ -441,5 +452,22 @@
     }
   });
 </script>
+<script>
+  setTimeout(() => {
+    const el = document.getElementById('lastUpdateTxt');
+    if(el) el.textContent = 'Live (MQTT)';
+  }, 1000);
+</script>
+
+<script>
+  // Clock
+  function updateClock() {
+    const el = document.getElementById('headerTime');
+    if(el) el.textContent = new Date().toLocaleTimeString('id-ID');
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+</script>
 </body>
+
 </html>

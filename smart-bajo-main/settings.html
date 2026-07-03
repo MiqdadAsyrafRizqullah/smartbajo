@@ -271,6 +271,16 @@
         <h2>Pengaturan Sistem ⚙️</h2>
         <p>Konfigurasi parameter sistem, notifikasi, dan preferensi akun Smart Bajo</p>
       </div>
+      <div class="header-actions">
+        <div class="header-time" id="headerTime">--:--:--</div>
+        <div class="btn-icon" data-tooltip="Notifikasi" onclick="window.location='alerts.html'">
+          <i data-lucide="bell"></i>
+          <div class="badge"></div>
+        </div>
+        <div class="btn-icon" data-tooltip="Refresh" onclick="window.location.reload()">
+          <i data-lucide="refresh-cw" id="refreshIcon"></i>
+        </div>
+      </div>
     </header>
 
     <div class="page-content">
@@ -397,5 +407,16 @@
     });
   }
 </script>
+
+<script>
+  // Clock
+  function updateClock() {
+    const el = document.getElementById('headerTime');
+    if(el) el.textContent = new Date().toLocaleTimeString('id-ID');
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+</script>
 </body>
+
 </html>
