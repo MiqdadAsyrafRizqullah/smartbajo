@@ -532,7 +532,6 @@
         }
         
         updateSensorDOM();
-        updateChartsRealtime();
       } catch (e) {
         console.error("Gagal mem-parsing data MQTT:", e);
       }
@@ -663,6 +662,7 @@
     }
     mainChart.update('none');
   }
+  setInterval(updateChartsRealtime, 5000);
 
   function refreshData() {}
   function setChartRange(range) {}
