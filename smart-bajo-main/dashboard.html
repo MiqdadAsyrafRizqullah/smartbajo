@@ -319,16 +319,7 @@
           <div class="stat-sub">1 kritis · 2 peringatan</div>
         </div>
 
-        <!-- Kelembaban Rata-rata -->
-        <div class="stat-card" style="--stat-color:var(--color-purple);--stat-glow:var(--color-purple-glow);--stat-bg:rgba(168,85,247,0.08);--stat-border:rgba(168,85,247,0.2);">
-          <div class="stat-card-top">
-            <div class="stat-icon"><i data-lucide="cloud-rain"></i></div>
-            <span class="stat-badge up">Optimal</span>
-          </div>
-          <div class="stat-value" id="statHumid">--%</div>
-          <div class="stat-label">Kelembaban Udara</div>
-          <div class="stat-sub">Suhu udara: <span id="statAirTemp">31.2°C</span></div>
-        </div>
+
       </div>
 
       <!-- Sensor Cards Grid -->
@@ -486,7 +477,7 @@
   // HIVEMQ WEBSOCKETS CONNECTION
   // ==========================================
   const MQTT_BROKER = "wss://broker.hivemq.com:8884/mqtt";
-  const MQTT_TOPIC = "esp32/#";
+  const MQTT_TOPIC = "smartbajo/#";
 
   function initMQTT() {
     console.log("Menghubungkan ke HiveMQ...");
@@ -502,10 +493,10 @@
       try {
         const val = message.toString();
         
-        if (topic === "esp32/sensor/airTemp") currentData.bme = val;
-        else if (topic === "esp32/sensor/humidity") currentData.humid = val;
-        else if (topic === "esp32/sensor/waterTemp") currentData.temp = val;
-        else if (topic === "esp32/sensor/tds") {
+        if (topic === "smartbajo/sensor/airTemp") currentData.bme = val;
+        else if (topic === "smartbajo/sensor/humidity") currentData.humid = val;
+        else if (topic === "smartbajo/sensor/waterTemp") currentData.temp = val;
+        else if (topic === "smartbajo/sensor/tds") {
             currentData.tds = val;
             currentData.ec = parseFloat((currentData.tds / 640).toFixed(2));
         }
@@ -528,8 +519,6 @@
     document.getElementById('sensorBME').textContent = currentData.bme;
     document.getElementById('sensorHumid').textContent = currentData.humid;
     document.getElementById('statEC').textContent = currentData.ec;
-    document.getElementById('statHumid').textContent = currentData.humid + '%';
-    document.getElementById('statAirTemp').textContent = currentData.bme + '°C';
 
   }
 
