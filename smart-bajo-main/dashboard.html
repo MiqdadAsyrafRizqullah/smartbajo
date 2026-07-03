@@ -507,7 +507,7 @@
   // HIVEMQ WEBSOCKETS CONNECTION
   // ==========================================
   const MQTT_BROKER = "wss://broker.hivemq.com:8884/mqtt";
-  const MQTT_TOPIC = "smartnode/esp32_01/data";
+  const MQTT_TOPIC = "esp32/#";
 
   function initMQTT() {
     console.log("Menghubungkan ke HiveMQ...");
@@ -521,16 +521,15 @@
 
     client.on('message', function (topic, message) {
       try {
-        const payload = JSON.parse(message.toString());
-        console.log("Data diterima:", payload);
+        const val = message.toString();
         
-        if (payload.air_temp_c !== undefined) currentData.bme = payload.air_temp_c;
-        if (payload.air_hum_pct !== undefined) currentData.humid = payload.air_hum_pct;
-        if (payload.water_temp_c !== undefined) currentData.temp = payload.water_temp_c;
-        if (payload.tds_ppm !== undefined) currentData.tds = payload.tds_ppm;
-
-        // Dummy data for sensors not in ESP32 payload
-        currentData.ec = parseFloat((currentData.tds / 640).toFixed(2)); // Rough estimation
+        if (topic === "esp32/sensor/airTemp") currentData.bme = val;
+        else if (topic === "esp32/sensor/humidity") currentData.humid = val;
+        else if (topic === "esp32/sensor/waterTemp") currentData.temp = val;
+        else if (topic === "esp32/sensor/tds") {
+            currentData.tds = val;
+            currentData.ec = parseFloat((currentData.tds / 640).toFixed(2));
+        }
         
         updateSensorDOM();
         updateChartsRealtime();
