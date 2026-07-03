@@ -435,6 +435,7 @@
   </main>
 </div>
 
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
   lucide.createIcons();
   
@@ -467,7 +468,56 @@
     document.getElementById(id).style.strokeDashoffset = offset;
   }
 
-  async function updateGauges() { /* Disabled dummy */ }
+  let currentData = { ec: 0, temp: 0, tds: 0, bme: 0, humid: 0, level: 0 };
+  const MQTT_BROKER = "wss://broker.hivemq.com:8884/mqtt";
+  
+  function initMQTT() {
+    const client = mqtt.connect(MQTT_BROKER);
+    
+    client.on('connect', function () {
+      client.subscribe("esp32/#");
+      const el = document.getElementById('lastUpdateTxt');
+      if(el) el.textContent = 'Live (MQTT)';
+    });
+
+    client.on('message', function (topic, message) {
+      try {
+        const strVal = message.toString();
+        if(strVal === "NaN" || strVal === "nan") return;
+        const val = parseFloat(strVal);
+        if (isNaN(val)) return;
+        
+        if (topic === "esp32/sensor/airTemp") {
+            currentData.bme = val;
+            document.getElementById('valBME').textContent = val;
+            setGauge('gaugeBME', val, 20, 50);
+        }
+        else if (topic === "esp32/sensor/humidity") {
+            currentData.humid = val;
+            document.getElementById('valHumid').textContent = val + '%';
+        }
+        else if (topic === "esp32/sensor/waterTemp") {
+            currentData.temp = val;
+            document.getElementById('valTemp').textContent = val;
+            setGauge('gaugeTemp', val, 20, 40);
+        }
+        else if (topic === "esp32/sensor/tds") {
+            currentData.tds = val;
+            currentData.ec = parseFloat((val / 640).toFixed(2));
+            document.getElementById('valTDS').textContent = val;
+            document.getElementById('valEC').textContent = currentData.ec;
+            setGauge('gaugeTDS', val, 0, 2000);
+            setGauge('gaugeEC', currentData.ec, 0, 4);
+        }
+        else if (topic === "esp32/sensor/tank1") {
+            currentData.level = val;
+        }
+        
+      } catch (e) {
+        console.error("MQTT parse error", e);
+      }
+    });
+  }
 
   // ============================================
   // SENSOR CHART
@@ -542,10 +592,29 @@
   // ============================================
   // HISTORY TABLE
   // ============================================
+  function updateChartRealtime() {
+    const now = new Date();
+    chartLabels.push(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+    chartDatasets.ec.push(currentData.ec);
+    chartDatasets.temp.push(currentData.temp);
+    chartDatasets.tds.push(currentData.tds);
+    chartDatasets.level.push(currentData.level);
+    
+    if(chartLabels.length > 30) {
+      chartLabels.shift();
+      chartDatasets.ec.shift();
+      chartDatasets.temp.shift();
+      chartDatasets.tds.shift();
+      chartDatasets.level.shift();
+    }
+    sensorChart.update();
+  }
+  setInterval(updateChartRealtime, 5000);
+
   function renderHistory() { document.getElementById("historyBody").innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;\">Menunggu data...</td></tr>"; }
 
   // Init
-  updateGauges();
+  initMQTT();
   renderHistory();
   // setInterval removed for real data
 </script>
@@ -570,11 +639,6 @@
     }
   });
 </script>
-<script>
-  setTimeout(() => {
-    const el = document.getElementById('lastUpdateTxt');
-    if(el) el.textContent = 'Live (MQTT)';
-  }, 1000);
-</script>
+
 </body>
 </html>
