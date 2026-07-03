@@ -477,7 +477,7 @@
   // HIVEMQ WEBSOCKETS CONNECTION
   // ==========================================
   const MQTT_BROKER = "wss://broker.hivemq.com:8884/mqtt";
-  const MQTT_TOPIC = "smartbajo/#";
+  const MQTT_TOPIC = "esp32/#";
 
   function initMQTT() {
     console.log("Menghubungkan ke HiveMQ...");
@@ -493,10 +493,10 @@
       try {
         const val = message.toString();
         
-        if (topic === "smartbajo/sensor/airTemp") currentData.bme = val;
-        else if (topic === "smartbajo/sensor/humidity") currentData.humid = val;
-        else if (topic === "smartbajo/sensor/waterTemp") currentData.temp = val;
-        else if (topic === "smartbajo/sensor/tds") {
+        if (topic === "esp32/sensor/airTemp") currentData.bme = val;
+        else if (topic === "esp32/sensor/humidity") currentData.humid = val;
+        else if (topic === "esp32/sensor/waterTemp") currentData.temp = val;
+        else if (topic === "esp32/sensor/tds") {
             currentData.tds = val;
             currentData.ec = parseFloat((currentData.tds / 640).toFixed(2));
         }
