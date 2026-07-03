@@ -11,7 +11,7 @@
   <style>
     .sensor-detail-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: var(--space-lg);
       margin-bottom: var(--space-xl);
     }
@@ -279,6 +279,9 @@
           <i data-lucide="bell"></i>
           <div class="badge"></div>
         </div>
+        <div class="btn-icon" data-tooltip="Refresh" onclick="window.location.reload()">
+          <i data-lucide="refresh-cw" id="refreshIcon"></i>
+        </div>
       </div>
     </header>
 
@@ -395,22 +398,7 @@
           </div>
         </div>
 
-        <!-- LSTM Prediction -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="bot" style="width:18px;color:var(--color-primary);"></i> Prediksi LSTM 48 Jam</div>
-              <div class="card-subtitle">Prediksi konsentrasi EC nutrisi</div>
-            </div>
-            <span class="badge badge-info">AI Model</span>
-          </div>
-          <div id="predictionList"></div>
-          <div class="divider"></div>
-          <div style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-md);">
-            <div style="font-size:var(--text-xs);font-weight:600;color:var(--color-primary);display:flex;align-items:center;gap:6px;"><i data-lucide="lightbulb" style="width:14px;"></i> Rekomendasi Sistem</div>
-            <div style="font-size:10px;color:var(--color-text-muted);margin-top:4px;">Trigger pompa dosing pada pukul 14:00 WITA untuk mempertahankan EC optimal 2.0–2.5 mS/cm. Estimasi durasi: 8 menit.</div>
-          </div>
-        </div>
+
       </div>
 
       <!-- History Table -->
@@ -549,30 +537,7 @@
     sensorChart.update();
   }
 
-  // ============================================
-  // LSTM PREDICTIONS
-  // ============================================
-  function renderPredictions() {
-    const container = document.getElementById('predictionList');
-    const preds = [
-      { time: '+2 jam', val: 2.38, pct: 68 },
-      { time: '+4 jam', val: 2.25, pct: 63 },
-      { time: '+8 jam', val: 2.15, pct: 58 },
-      { time: '+12 jam', val: 2.10, pct: 55 },
-      { time: '+24 jam', val: 2.30, pct: 64 },
-      { time: '+48 jam', val: 2.45, pct: 70 },
-    ];
 
-    container.innerHTML = preds.map(p => `
-      <div class="prediction-item">
-        <div class="pred-time">${p.time}</div>
-        <div class="pred-bar-wrap">
-          <div class="pred-bar" style="width:${p.pct}%"></div>
-        </div>
-        <div class="pred-val">${p.val} mS</div>
-      </div>
-    `).join('');
-  }
 
   // ============================================
   // HISTORY TABLE
@@ -581,7 +546,6 @@
 
   // Init
   updateGauges();
-  renderPredictions();
   renderHistory();
   // setInterval removed for real data
 </script>
