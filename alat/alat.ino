@@ -1,853 +1,549 @@
-  /*
-    ESP32 DevKit - Multi-Sensor IoT Node  (v2)
-    -------------------------------------------
-    Sensor:
-      - SHT3x          : suhu & kelembapan udara   (I2C, 0x44/0x45)
-      - DS18B20        : suhu air                  (OneWire, GPIO 4)
-      - JSN-SR04T x5   : level air / jarak         (ultrasonic, 5 pasang Trig/Echo)
-      - ADS1115        : ADC 16-bit                (I2C, 0x48)
-      - TDS Meter v1   : kualitas air (ppm)        (analog via ADS1115 ch0)
+/*
+   ESP32 IoT Multi Sensor
+   MQTT JSON Publisher + Pump Control (Single Tank Sensor)
 
-    Aktuator:
-      - MOSFET LR7843 module 5-pin : kontrol pompa air
-        * Pompa HIDUP  : salah satu sensor JSN membaca jarak >= 35 cm
-        * Pompa MATI   : SEMUA sensor JSN membaca jarak < 30 cm
+   Sensor:
+   - TDS
+   - DS18B20
+   - Ultrasonik (Tangki)   -> JSN-SR04T v3.0 Trigger/Echo (pulseIn)
+   - SHT30/SHT31
 
-    Koneksi:
-      - WiFi R.NET (captive portal MikroTik) -> auto-login via HTTP POST voucher
-      - MQTT over TLS -> HiveMQ Cloud (port 8883)
-      - InfluxDB Cloud Serverless (HTTPS / Line Protocol)
+   Aktuator:
+   - Pompa (MOSFET PWM)
+   - Kondisi: tangki kering -> pompa mati (harus diisi ulang)
+   - Bacaan error / nyentuh batas minimum sensor -> diabaikan, pakai nilai valid terakhir
+*/
 
-    OTA:
-      - ArduinoOTA via WiFi (password: ota_smartbajo)
-      - Port 3232 (default). Upload di PlatformIO dengan upload_protocol = espota
+#include <WiFi.h>
+#include <esp_wifi.h>
+#include <PubSubClient.h>
 
-    Framework : Arduino (PlatformIO)
-    ============================================================
-    CATATAN PIN JSN-SR04T:
-      Echo JSN-SR04T bertegangan 5V. Gunakan voltage divider
-      (R1=1kΩ seri ke Echo, R2=2kΩ ke GND) sebelum masuk GPIO ESP32,
-      ATAU gunakan level-shifter, agar GPIO 3.3V tidak rusak.
-  */
- #include <Arduino.h>
- #include <WiFi.h>
- //include <WiFiClientSecure.h>
- #include <HTTPClient.h>
- #include <PubSubClient.h>
- #include <ArduinoOTA.h>
- #include <Wire.h>
- #include <Adafruit_SHT31.h>
- #include <NewPing.h>
- #include <OneWire.h>
- #include <DallasTemperature.h>
- #include <Adafruit_ADS1X15.h>
- #include <ArduinoJson.h>
- #include <InfluxDbClient.h>
- #include <InfluxDbCloud.h>
- #include <WiFiClient.h>
-  #include "secrets.h"
+#include <Wire.h>
+#include <Adafruit_SHT31.h>
 
-  // =====================================================================
-  //  KONFIGURASI PIN
-  // =====================================================================
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
-  // I2C (SHT3x + ADS1115) -> pin default ESP32
-  #define I2C_SDA_PIN 21
-  #define I2C_SCL_PIN 22
-#define TRIG1 5
-#define ECHO1 18
+#include <Adafruit_ADS1X15.h>
 
-#define TRIG2 19
-#define ECHO2 21
-  // DS18B20 (OneWire) - pasang pull-up 4.7kΩ antara DATA dan VCC
-  #define ONEWIRE_PIN 4
+#include "secrets.h"
 
-  // ---- MOSFET LR7843 (pompa) ----
-  // Hubungkan pin GATE modul LR7843 ke GPIO ini.
-  // HIGH = pompa HIDUP, LOW = pompa MATI.
-  #define PUMP_PIN 19
+//////////////////////////////
+// Node Identity (MAC asli ESP32, tanpa cloning)
+//////////////////////////////
 
-  // Channel ADS1115 untuk TDS Meter v1
-  #define TDS_ADS_CHANNEL 0
+String nodeId;   // di-set di setup(), dipakai untuk hostname WiFi & MQTT client ID
 
-  // =====================================================================
-  //  KONFIGURASI APLIKASI
-  // =====================================================================
-  #define PUBLISH_INTERVAL_MS 5000UL
-  #define WIFI_RECONNECT_DELAY 500UL
-  #define MQTT_RECONNECT_DELAY 2000UL
+//////////////////////////////
+// MQTT
+//////////////////////////////
 
-// ============== MQTT Topic (per sensor) ==============
-#define TOPIC_WATER_TEMP  "esp32/sensor/waterTemp"
-#define TOPIC_TDS         "esp32/sensor/tds"
-#define TOPIC_TANK1       "esp32/sensor/tank1"
-#define TOPIC_TANK2       "esp32/sensor/tank2"
-#define TOPIC_AIR_TEMP    "esp32/sensor/airTemp"
-#define TOPIC_HUMIDITY    "esp32/sensor/humidity"
-// ============== MQTT Topic (status/atribut) ==============
-#define TOPIC_WATER_TEMP_STATUS  "esp32/sensor/waterTemp/status"
-#define TOPIC_AIR_TEMP_STATUS    "esp32/sensor/airTemp/status"
-#define TOPIC_HUMIDITY_STATUS    "esp32/sensor/humidity/status"
-#define TOPIC_TANK1_STATUS       "esp32/sensor/tank1/status"
-#define TOPIC_TANK2_STATUS       "esp32/sensor/tank2/status"
-#define TOPIC_PUMP_CMD     "esp32/pump/cmd"
-#define TOPIC_PUMP_STATUS  "esp32/pump/status"
-#define TOPIC_PUMP_MODE    "esp32/pump/mode"
-#define MQTT_TOPIC_STATUS  "esp32/status"
+WiFiClient espClient;
+PubSubClient client(espClient);
 
+//////////////////////////////
+// PIN (susunan sesuai kode sebelumnya)
+//////////////////////////////
 
-  // ---- InfluxDB ----
-  #define INFLUXDB_URL "https://us-east-1-1.aws.cloud2.influxdata.com"
-  #define INFLUXDB_TOKEN "LoBd_3ful6J9nCpMHLeiVzXDCVyQO1cO28545-h0Gl695Ndls19mmz3ANfJZXXTvwzvAkhTliNCX_OWRHabD0Q=="
-  #define INFLUXDB_ORG "miqdadwajo@gmail.com"
-  #define INFLUXDB_BUCKET "smartbajo"
-  #define TZ_INFO "WITA-8"
+#define ONE_WIRE_BUS 4
+#define TRIG1        18   // Sensor Tangki TRIG
+#define ECHO1        21   // Sensor Tangki ECHO
+#define SDA_PIN      23
+#define SCL_PIN      22
+#define PUMP_PIN     27
 
-  // OTA password (ubah sesuai kebutuhan)
-  #define OTA_PASSWORD "ota_smartbajo"
-  #define OTA_HOSTNAME "esp32-smartnode-01"
+//////////////////////////////
+// PWM Pompa
+//////////////////////////////
 
-  // =====================================================================
-  //  KONFIGURASI HOTSPOT LOGIN (R.NET / MikroTik Captive Portal)
-  // =====================================================================
-  // Isi VOUCHER_CODE dengan kode voucher R.NET (format: XXX-XXX)
-  // Pada MikroTik Hotspot, kode voucher dipakai sebagai username DAN password.
-  #define VOUCHER_CODE "30RSmartBajo" // <-- GANTI dengan voucher aktif
+#define PWM_CHANNEL   0
+#define PWM_FREQ      1000
+#define PWM_RES       8
 
-  // IP gateway diambil otomatis dari DHCP saat runtime — tidak perlu hardcode
-  #define HOTSPOT_LOGIN_PATH "/login" // path form login MikroTik (default)
+//////////////////////////////
+// Sensor Range (JSN-SR04T-3.0)
+//////////////////////////////
 
-  // Interval re-login jika sesi voucher expired (ms). Default 55 menit.
-  #define HOTSPOT_RELOGIN_INTERVAL_MS (55UL * 60UL * 1000UL)
+#define SENSOR_MIN_CM   21.0
+#define SENSOR_MAX_CM   600.0
 
-  // =====================================================================
-  //  OBJEK GLOBAL
-  // =====================================================================
-  WiFiClient wifiClient;
-PubSubClient mqttClient(wifiClient);
+//////////////////////////////
+// Kontrol Pompa
+//////////////////////////////
 
-  Adafruit_SHT31 sht3x = Adafruit_SHT31();
-  OneWire oneWire(ONEWIRE_PIN);
-  DallasTemperature ds18b20(&oneWire);
-  NewPing sonar1(TRIG1,ECHO1,400);
-NewPing sonar2(TRIG2,ECHO2,400);
-  Adafruit_ADS1115 ads;
+#define PUMP_SPEED_ON   255   // speed pompa saat aktif (0-255)
 
-  InfluxDBClient influxClient(INFLUXDB_URL, INFLUXDB_ORG,
-                              INFLUXDB_BUCKET, INFLUXDB_TOKEN,
-                              InfluxDbCloud2CACert);
-  Point sensorData("monitoring");
+// Hysteresis kering -> aman: tangki dianggap kering di atas ambang ini
+#define TANK_OFF_CM     75.0
 
-  bool sht3xReady = false;
-  bool ds18b20Ready = false;
-  bool adsReady = false;
-  bool pumpState = false; // status pompa saat ini
+// Penjadwalan flush harian (mode AUTO saja): pulsa tetap 30 detik tiap 24 jam,
+// dihitung dari uptime (bukan jam dinding, karena tidak ada RTC/NTP).
+#define FLUSH_INTERVAL_MS   86400000UL   // 24 jam
+#define FLUSH_DURATION_MS   30000UL      // 30 detik
 
-  unsigned long lastPublish = 0;
-  unsigned long lastHotspotLogin = 0; // timestamp login hotspot terakhir
+//////////////////////////////
 
-  // ADS1115 GAIN_TWOTHIRDS -> range +/-6.144V, 1 bit = 0.1875 mV
-  const float ADS_VOLTS_PER_BIT = 0.1875F / 1000.0F;
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature ds18b20(&oneWire);
 
-  // =====================================================================
-  //  DEBUG HELPER
-  // =====================================================================
-  const char *wifiStatusStr(wl_status_t s)
+Adafruit_SHT31 sht31;
+
+Adafruit_ADS1115 ads;
+
+//////////////////////////////
+
+unsigned long lastPublish = 0;
+
+float lastTank1 = 75;   // default aman saat boot: anggap tangki kurang/kering
+bool  pumpActive = false;
+bool  pumpManualMode = false;   // true = dikontrol manual dari app, false = auto (sensor)
+
+unsigned long lastFlushMillis  = 0;      // kapan flush harian terakhir SELESAI
+unsigned long flushStartMillis = 0;
+bool flushInProgress = false;
+
+//////////////////////////////
+// WiFi
+//////////////////////////////
+
+void connectWiFi()
+{
+  WiFi.setAutoReconnect(false);
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect(true);
+  delay(300);
+
+  int bestIndex = -1;
+  int bestRSSI  = -999;
+
+  while (bestIndex == -1)
   {
-    switch (s)
-    {
-    case WL_NO_SHIELD:
-      return "NO_SHIELD";
-    case WL_IDLE_STATUS:
-      return "IDLE";
-    case WL_NO_SSID_AVAIL:
-      return "NO_SSID_AVAIL";
-    case WL_SCAN_COMPLETED:
-      return "SCAN_COMPLETED";
-    case WL_CONNECTED:
-      return "CONNECTED";
-    case WL_CONNECT_FAILED:
-      return "CONNECT_FAILED";
-    case WL_CONNECTION_LOST:
-      return "CONNECTION_LOST";
-    case WL_DISCONNECTED:
-      return "DISCONNECTED";
-    default:
-      return "UNKNOWN";
-    }
-  }
-
-  // =====================================================================
-  //  WIFI
-  // =====================================================================
-  void connectWiFi()
-  {
-    if (WiFi.status() == WL_CONNECTED)
-      return;
-
-    Serial.println("\n[WiFi:DBG] ====== connectWiFi() START ======");
-    Serial.printf("[WiFi:DBG] Status awal: %s (%d)\n",
-                  wifiStatusStr(WiFi.status()), WiFi.status());
-    Serial.printf("[WiFi:DBG] Target SSID : \"%s\"\n", WIFI_SSID);
-    Serial.printf("[WiFi:DBG] Password    : \"%s\" (len=%d)\n",
-                  strlen(WIFI_PASSWORD) == 0 ? "(kosong/open)" : "***", strlen(WIFI_PASSWORD));
-    Serial.printf("[WiFi:DBG] MAC Address : %s\n", WiFi.macAddress().c_str());
-
-    WiFi.disconnect(true);
-    delay(300);
-    WiFi.mode(WIFI_STA);
-    Serial.println("[WiFi:DBG] Mode WIFI_STA OK, memulai WiFi.begin()...");
-
-   uint8_t rnetBSSID[] = {
-    0x72,0x11,0x41,0x2E,0x6A,0x3B
-};
-
-WiFi.begin(WIFI_SSID, NULL, 9, rnetBSSID);
-
-    // Timeout diperpanjang 90 detik — sinyal lemah + DHCP MikroTik bisa lambat
-    unsigned long start = millis();
-    wl_status_t lastStatus = WL_IDLE_STATUS;
-    int dotCount = 0;
-
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      delay(WIFI_RECONNECT_DELAY);
-      wl_status_t cur = WiFi.status();
-
-      // Cetak setiap perubahan status
-      if (cur != lastStatus)
-      {
-        Serial.printf("\n[WiFi:DBG] Status berubah: %s -> %s  (t=%lus)\n",
-                      wifiStatusStr(lastStatus), wifiStatusStr(cur),
-                      (millis() - start) / 1000);
-        lastStatus = cur;
-
-        // Jika sudah pasti gagal, jangan tunggu timeout
-        if (cur == WL_NO_SSID_AVAIL)
-        {
-          Serial.println("[WiFi:DBG] SSID tidak ditemukan! Cek nama SSID di secrets.h");
-          Serial.println("[WiFi:DBG] Restart dalam 3 detik...");
-          delay(3000);
-          ESP.restart();
-        }
-        if (cur == WL_CONNECT_FAILED)
-        {
-          Serial.println("[WiFi:DBG] Auth GAGAL (password salah?)");
-          Serial.println("[WiFi:DBG] Restart dalam 3 detik...");
-          delay(3000);
-          ESP.restart();
-        }
-      }
-
-      // Progress dot setiap 500ms
-      Serial.print(".");
-      dotCount++;
-      if (dotCount % 20 == 0)
-      {
-        Serial.printf("  [%lus / RSSI: %d dBm]\n",
-                      (millis() - start) / 1000, WiFi.RSSI());
-      }
-
-      if (millis() - start > 90000UL)
-      {
-        Serial.printf("\n[WiFi:DBG] TIMEOUT 90 detik!\n");
-        Serial.printf("[WiFi:DBG] Status terakhir : %s\n", wifiStatusStr(WiFi.status()));
-        Serial.printf("[WiFi:DBG] RSSI terakhir   : %d dBm\n", WiFi.RSSI());
-        Serial.printf("[WiFi:DBG] Channel         : %d\n", WiFi.channel());
-        Serial.println("[WiFi:DBG] Kemungkinan penyebab:");
-        Serial.println("  1. Sinyal terlalu lemah (RSSI < -85 dBm)");
-        Serial.println("  2. AP R.NET penuh / tidak merespons");
-        Serial.println("  3. DHCP MikroTik sangat lambat");
-        Serial.println("  4. MAC address di-blacklist");
-        Serial.println("[WiFi:DBG] Restart ESP32...");
-        ESP.restart();
-      }
-    }
-
-    Serial.printf("\n[WiFi:DBG] ====== CONNECTED dalam %lus ======\n",
-                  (millis() - start) / 1000);
-    Serial.printf("[WiFi:DBG] IP       : %s\n", WiFi.localIP().toString().c_str());
-    Serial.printf("[WiFi:DBG] Gateway  : %s\n", WiFi.gatewayIP().toString().c_str());
-    Serial.printf("[WiFi:DBG] Subnet   : %s\n", WiFi.subnetMask().toString().c_str());
-    Serial.printf("[WiFi:DBG] DNS      : %s\n", WiFi.dnsIP().toString().c_str());
-    Serial.printf("[WiFi:DBG] RSSI     : %d dBm\n", WiFi.RSSI());
-    Serial.printf("[WiFi:DBG] Channel  : %d\n", WiFi.channel());
-    Serial.printf("[WiFi:DBG] BSSID    : %s\n", WiFi.BSSIDstr().c_str());
-  }
-
-  // =====================================================================
-  //  HOTSPOT LOGIN (MikroTik Captive Portal - R.NET)
-  // =====================================================================
-  /*
-    Alur login MikroTik Hotspot:
-    1. ESP32 konek ke SSID R.NET (tanpa password / WPA terbuka)
-    2. MikroTik memberi IP via DHCP tapi memblokir traffic ke internet
-    3. ESP32 kirim HTTP POST ke http://<gateway>/login dengan body:
-        username=XXX-XXX&password=XXX-XXX
-    4. MikroTik membuka akses internet untuk MAC address ESP32 tersebut
-
-    Fungsi ini dipanggil:
-    - Sekali saat boot (setelah connectWiFi)
-    - Periodik tiap HOTSPOT_RELOGIN_INTERVAL_MS (default 55 menit)
-      untuk jaga-jaga kalau sesi expired sebelum voucher habis
-  */
-  bool loginHotspot()
-  {
-    Serial.println("\n[Hotspot:DBG] ====== loginHotspot() START ======");
-
-    // Cek WiFi masih konek
-    if (WiFi.status() != WL_CONNECTED)
-    {
-      Serial.println("[Hotspot:DBG] WiFi TIDAK terhubung! Batalkan login.");
-      return false;
-    }
-
-    // Gateway diambil otomatis dari DHCP
-    String gateway = WiFi.gatewayIP().toString();
-    Serial.printf("[Hotspot:DBG] Gateway : %s\n", gateway.c_str());
-
-    if (gateway == "0.0.0.0" || gateway.length() == 0)
-    {
-      Serial.println("[Hotspot:DBG] Gateway 0.0.0.0 — DHCP belum assign. Tunggu 2 detik...");
-      delay(2000);
-      gateway = WiFi.gatewayIP().toString();
-      Serial.printf("[Hotspot:DBG] Gateway (retry): %s\n", gateway.c_str());
-      if (gateway == "0.0.0.0")
-      {
-        Serial.println("[Hotspot:DBG] Gateway masih 0.0.0.0, abort.");
-        return false;
-      }
-    }
-
-    // Cek konektivitas ke gateway dulu (ping via HTTP GET /)
-    Serial.printf("[Hotspot:DBG] Voucher : \"%s\"\n", VOUCHER_CODE);
-    String loginUrl = "http://" + gateway + HOTSPOT_LOGIN_PATH;
-    Serial.printf("[Hotspot:DBG] Login URL: %s\n", loginUrl.c_str());
-
-    // --- Step 1: GET halaman login ---
-    Serial.println("[Hotspot:DBG] STEP 1 — GET login page...");
-    String dst = "";
-    {
-      HTTPClient http;
-      http.begin(loginUrl);
-      http.addHeader("User-Agent", "Mozilla/5.0 (ESP32)");
-      http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-      http.setTimeout(12000);
-
-      unsigned long t0 = millis();
-      int code = http.GET();
-      Serial.printf("[Hotspot:DBG] GET selesai dalam %lums, HTTP %d\n",
-                    millis() - t0, code);
-
-      if (code > 0)
-      {
-        String body = http.getString();
-        Serial.printf("[Hotspot:DBG] Response len: %d bytes\n", body.length());
-
-        // Cari dst field
-        int idx = body.indexOf("name=\"dst\" value=\"");
-        if (idx != -1)
-        {
-          int s = idx + 18;
-          dst = body.substring(s, body.indexOf("\"", s));
-          Serial.println("[Hotspot:DBG] dst field: \"" + dst + "\"");
-        }
-        else
-        {
-          Serial.println("[Hotspot:DBG] dst field TIDAK ditemukan di response.");
-        }
-
-        // Tampilkan 500 karakter pertama response untuk diagnosis
-        Serial.println("[Hotspot:DBG] --- Cuplikan Response (500 char) ---");
-        Serial.println(body.substring(0, 500));
-        Serial.println("[Hotspot:DBG] --- End Response ---");
-      }
-      else
-      {
-        Serial.printf("[Hotspot:DBG] GET GAGAL: %s (code=%d)\n",
-                      http.errorToString(code).c_str(), code);
-        Serial.println("[Hotspot:DBG] Kemungkinan: gateway tidak bisa dijangkau / bukan MikroTik");
-        http.end();
-        return false;
-      }
-      http.end();
-    }
-
-    delay(500);
-
-    // --- Step 2: POST login ---
-    Serial.println("\n[Hotspot:DBG] STEP 2 — POST credentials...");
-    String postBody = "username=";
-    postBody += VOUCHER_CODE;
-    postBody += "&password=";
-    postBody += VOUCHER_CODE;
-    postBody += "&dst=";
-    postBody += dst;
-    postBody += "&popup=true";
-
-    Serial.printf("[Hotspot:DBG] POST body: %s\n", postBody.c_str());
-
-    HTTPClient http;
-    http.begin(loginUrl);
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    http.addHeader("User-Agent", "Mozilla/5.0 (ESP32)");
-    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-    http.setTimeout(12000);
-
-    unsigned long t0 = millis();
-    int postCode = http.POST(postBody);
-    Serial.printf("[Hotspot:DBG] POST selesai dalam %lums, HTTP %d\n",
-                  millis() - t0, postCode);
-
-    bool success = false;
-    if (postCode > 0)
-    {
-      String resp = http.getString();
-      Serial.printf("[Hotspot:DBG] Response len: %d bytes\n", resp.length());
-      Serial.println("[Hotspot:DBG] --- Cuplikan Response POST (500 char) ---");
-      Serial.println(resp.substring(0, 500));
-      Serial.println("[Hotspot:DBG] --- End ---");
-
-      if (postCode == 200 || postCode == 302)
-      {
-        bool hasInvalid = resp.indexOf("invalid") != -1;
-        bool hasError = resp.indexOf("Error") != -1;
-        bool hasLogged = resp.indexOf("logged") != -1 || resp.indexOf("You are logged") != -1;
-
-        Serial.printf("[Hotspot:DBG] Flags — invalid:%d  Error:%d  logged:%d\n",
-                      hasInvalid, hasError, hasLogged);
-
-        if (!hasInvalid && !hasError)
-        {
-          Serial.println("[Hotspot:DBG] LOGIN BERHASIL! Internet terbuka.");
-
-          // Verifikasi internet: coba resolve DNS sederhana
-          Serial.println("[Hotspot:DBG] Verifikasi internet via HTTP HEAD ke http://clients3.google.com/generate_204 ...");
-          HTTPClient testHttp;
-          testHttp.begin("http://clients3.google.com/generate_204");
-          testHttp.setTimeout(8000);
-          int testCode = testHttp.GET();
-          testHttp.end();
-          Serial.printf("[Hotspot:DBG] Test HTTP: %d (204=internet OK, lainnya=mungkin masih portal)\n", testCode);
-
-          success = true;
-        }
-        else
-        {
-          Serial.println("[Hotspot:DBG] LOGIN GAGAL — response mengandung kata 'invalid' atau 'Error'.");
-          Serial.println("[Hotspot:DBG] Cek: apakah VOUCHER_CODE sudah benar?");
-        }
-      }
-      else
-      {
-        Serial.printf("[Hotspot:DBG] HTTP code tidak terduga: %d\n", postCode);
-      }
-    }
-    else
-    {
-      Serial.printf("[Hotspot:DBG] POST GAGAL: %s\n", http.errorToString(postCode).c_str());
-    }
-    http.end();
-
-    Serial.printf("[Hotspot:DBG] ====== loginHotspot() END — %s ======\n\n",
-                  success ? "SUKSES" : "GAGAL");
-    return success;
-  }
-
-  // Wrapper: login hotspot + retry hingga berhasil (max 5x)
-  void ensureHotspotLogin()
-  {
-    Serial.println("[Hotspot:DBG] ensureHotspotLogin() dipanggil.");
-    const int MAX_RETRY = 5;
-    for (int attempt = 1; attempt <= MAX_RETRY; attempt++)
-    {
-      Serial.printf("[Hotspot:DBG] Percobaan %d/%d...\n", attempt, MAX_RETRY);
-      if (loginHotspot())
-      {
-        lastHotspotLogin = millis();
-        Serial.printf("[Hotspot:DBG] Berhasil pada percobaan ke-%d\n", attempt);
-        return;
-      }
-      if (attempt < MAX_RETRY)
-      {
-        Serial.printf("[Hotspot:DBG] Tunggu 5 detik sebelum retry...\n");
-        delay(5000);
-      }
-    }
-    Serial.println("[Hotspot:DBG] SEMUA percobaan GAGAL.");
-    Serial.println("[Hotspot:DBG] Periksa: voucher aktif? Gateway benar? Path /login?");
-  }
-
-  // =====================================================================
-  //  MQTT CALLBACK — terima perintah pompa dari dashboard
-  // =====================================================================
-  void mqttCallback(char* topic, byte* payload, unsigned int length)
-  {
-    String msg;
-    for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];
-    msg.trim();
-
-    Serial.printf("[MQTT] Perintah diterima: topic=%s msg=%s\n", topic, msg.c_str());
-
-    if (String(topic) == TOPIC_PUMP_CMD)
-    {
-      if (msg == "ON")
-      {
-        pumpState = true;
-        digitalWrite(PUMP_PIN, HIGH);
-        mqttClient.publish(TOPIC_PUMP_STATUS, "ON", true);
-        Serial.println("[PUMP] Manual ON dari dashboard");
-      }
-      else if (msg == "OFF")
-      {
-        pumpState = false;
-        digitalWrite(PUMP_PIN, LOW);
-        mqttClient.publish(TOPIC_PUMP_STATUS, "OFF", true);
-        Serial.println("[PUMP] Manual OFF dari dashboard");
-      }
-      else
-      {
-        Serial.printf("[PUMP] Perintah tidak dikenal: %s (gunakan ON/OFF)\n", msg.c_str());
-      }
-    }
-  }
-
-  void connectMQTT()
-  {
-    Serial.println("\n[MQTT:DBG] ====== connectMQTT() START ======");
-    Serial.printf("[MQTT:DBG] Host   : %s\n", MQTT_HOST);
-    Serial.printf("[MQTT:DBG] Port : %d\n", MQTT_PORT);
-    Serial.printf("[MQTT:DBG] Client : %s\n", MQTT_CLIENT_ID);
-    Serial.printf("[MQTT:DBG] User   : %s\n", MQTT_USERNAME);
-
-    int attempt = 0;
-    while (!mqttClient.connected())
-    {
-      attempt++;
-      Serial.printf("[MQTT:DBG] Percobaan #%d ...\n", attempt);
-      unsigned long t0 = millis();
-
-      bool ok = mqttClient.connect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD,
-                                  MQTT_TOPIC_STATUS, 1, true, "offline");
-      Serial.printf("[MQTT:DBG] connect() selesai dalam %lums\n", millis() - t0);
-
-      if (ok)
-      {
-        Serial.println("[MQTT:DBG] CONNECTED!");
-        mqttClient.publish(MQTT_TOPIC_STATUS, "online", true);
-        mqttClient.subscribe(TOPIC_PUMP_CMD);
-        Serial.println("[MQTT:DBG] Subscribe: " TOPIC_PUMP_CMD);
-      }
-      else
-      {
-        int rc = mqttClient.state();
-        Serial.printf("[MQTT:DBG] GAGAL rc=%d — ", rc);
-        switch (rc)
-        {
-        case -4:
-          Serial.println("TIMEOUT (server tidak merespons)");
-          break;
-        case -3:
-          Serial.println("CONNECTION_LOST");
-          break;
-        case -2:
-          Serial.println("CONNECT_FAILED");
-          break;
-        case -1:
-          Serial.println("DISCONNECTED");
-          break;
-        case 1:
-          Serial.println("BAD_PROTOCOL");
-          break;
-        case 2:
-          Serial.println("BAD_CLIENT_ID");
-          break;
-        case 3:
-          Serial.println("UNAVAILABLE");
-          break;
-        case 4:
-          Serial.println("BAD_CREDENTIALS (cek MQTT_USERNAME/PASSWORD)");
-          break;
-        case 5:
-          Serial.println("UNAUTHORIZED");
-          break;
-        default:
-          Serial.println("UNKNOWN");
-          break;
-        }
-        Serial.printf("[MQTT:DBG] WiFi status: %s\n", wifiStatusStr(WiFi.status()));
-        Serial.printf("[MQTT:DBG] Retry dalam %lu ms...\n", MQTT_RECONNECT_DELAY);
-        delay(MQTT_RECONNECT_DELAY);
-      }
-    }
-  }
-
-  // =====================================================================
-  //  OTA
-  // =====================================================================
-  void setupOTA()
-  {
-    ArduinoOTA.setHostname(OTA_HOSTNAME);
-    ArduinoOTA.setPassword(OTA_PASSWORD);
-
-    ArduinoOTA.onStart([]()
-                      {
-      String type = (ArduinoOTA.getCommand() == U_FLASH) ? "sketch" : "filesystem";
-      Serial.println("[OTA] Mulai update: " + type); });
-    ArduinoOTA.onEnd([]()
-                    { Serial.println("\n[OTA] Selesai. Restart..."); });
-    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
-                          { Serial.printf("[OTA] Progress: %u%%\r", progress * 100 / total); });
-    ArduinoOTA.onError([](ota_error_t err)
-                      {
-      Serial.printf("[OTA] Error[%u]: ", err);
-      if      (err == OTA_AUTH_ERROR)    Serial.println("Auth Failed");
-      else if (err == OTA_BEGIN_ERROR)   Serial.println("Begin Failed");
-      else if (err == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-      else if (err == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-      else if (err == OTA_END_ERROR)     Serial.println("End Failed"); });
-
-    ArduinoOTA.begin();
-    Serial.printf("[OTA] Siap. Hostname: %s\n", OTA_HOSTNAME);
-  }
-
-  // =====================================================================
-  //  SENSOR - TDS
-  // =====================================================================
-  float readTdsPpm(float waterTempC)
-  {
-    int16_t raw = ads.readADC_SingleEnded(TDS_ADS_CHANNEL);
-    float voltage = raw * ADS_VOLTS_PER_BIT;
-    float compCoeff = 1.0F + 0.02F * (waterTempC - 25.0F);
-    float compVolt = voltage / compCoeff;
-    float tds = (133.42F * compVolt * compVolt * compVolt - 255.86F * compVolt * compVolt + 857.39F * compVolt) * 0.5F;
-    return (tds < 0) ? 0 : tds;
-  }
-
-  // =====================================================================
-  //  SETUP
-  // =====================================================================
-  void setupPins()
-  {
-    pinMode(PUMP_PIN, OUTPUT);
-    digitalWrite(PUMP_PIN, LOW); // pompa MATI saat boot
-  }
-
-  void setupSensors()
-  {
-    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
-
-    // SHT3x
-    sht3xReady = sht3x.begin(0x44);
-    if (!sht3xReady)
-    {
-      Serial.println("[SHT3x] Tidak terdeteksi di 0x44, mencoba 0x45...");
-      sht3xReady = sht3x.begin(0x45);
-    }
-    Serial.printf("[SHT3x]   %s\n", sht3xReady ? "OK" : "GAGAL");
-
-    // DS18B20
-    ds18b20.begin();
-    ds18b20Ready = (ds18b20.getDeviceCount() > 0);
-    Serial.printf("[DS18B20] %s (%d device)\n",
-                  ds18b20Ready ? "OK" : "GAGAL", ds18b20.getDeviceCount());
-
-    // ADS1115
-    adsReady = ads.begin(0x48);
-    if (adsReady)
-      ads.setGain(GAIN_TWOTHIRDS);
-    Serial.printf("[ADS1115] %s\n", adsReady ? "OK" : "GAGAL");
-  }
-
-  void setupInfluxDB()
-  {
-    timeSync(TZ_INFO, "pool.ntp.org", "time.nis.gov");
-
-    if (influxClient.validateConnection())
-      Serial.printf("[InfluxDB] Terhubung ke: %s\n", influxClient.getServerUrl().c_str());
-    else
-      Serial.printf("[InfluxDB] Gagal: %s\n", influxClient.getLastErrorMessage().c_str());
-  }
-
-  // Scan dan cetak semua SSID — pastikan nama SSID target terdeteksi
-  void scanWiFi()
-  {
-    Serial.println("[WiFi] Scanning jaringan...");
-    WiFi.mode(WIFI_STA);
+    Serial.print("Scanning WiFi...");
     int n = WiFi.scanNetworks();
-    if (n == 0)
-    {
-      Serial.println("[WiFi] Tidak ada jaringan ditemukan!");
-      return;
-    }
-    Serial.printf("[WiFi] %d jaringan ditemukan:\n", n);
-    bool targetFound = false;
+    Serial.println(" Done");
+
     for (int i = 0; i < n; i++)
     {
-      bool isTarget = (WiFi.SSID(i) == WIFI_SSID);
-      if (isTarget)
-        targetFound = true;
-      Serial.printf("  %s [%d] SSID: \"%s\"  RSSI: %d dBm  %s\n",
-                    isTarget ? ">>>" : "   ",
-                    i + 1,
-                    WiFi.SSID(i).c_str(),
-                    WiFi.RSSI(i),
-                    (WiFi.encryptionType(i) == WIFI_AUTH_OPEN) ? "OPEN" : "ENCRYPTED");
-    }
-    Serial.printf("[WiFi] Target kita: \"%s\"\n", WIFI_SSID);
-    if (!targetFound)
-    {
-      Serial.println("[WiFi:DBG] PERINGATAN: SSID target TIDAK DITEMUKAN dalam scan!");
-      Serial.println("[WiFi:DBG] Cek: apakah nama SSID sudah benar? (case-sensitive)");
-    }
-    else
-    {
-      // Cek kekuatan sinyal target
-      for (int i = 0; i < n; i++)
+      if (String(WiFi.SSID(i)) == WIFI_SSID)
       {
-        if (WiFi.SSID(i) == WIFI_SSID)
+        Serial.printf("  Found: %s CH:%d RSSI:%d\n",
+          WiFi.BSSIDstr(i).c_str(), WiFi.channel(i), WiFi.RSSI(i));
+
+        if (WiFi.RSSI(i) > bestRSSI)
         {
-          int rssi = WiFi.RSSI(i);
-          Serial.printf("[WiFi:DBG] RSSI target: %d dBm — ", rssi);
-          if (rssi >= -60)
-            Serial.println("SANGAT KUAT (OK)");
-          else if (rssi >= -70)
-            Serial.println("KUAT (OK)");
-          else if (rssi >= -80)
-            Serial.println("SEDANG (mungkin OK)");
-          else if (rssi >= -85)
-            Serial.println("LEMAH (risiko timeout)");
-          else
-            Serial.println("SANGAT LEMAH (kemungkinan besar gagal konek!)");
+          bestRSSI  = WiFi.RSSI(i);
+          bestIndex = i;
         }
       }
     }
-    WiFi.scanDelete();
+
+    if (bestIndex == -1)
+    {
+      Serial.println("SSID not found, retry in 3s...");
+      WiFi.scanDelete();
+      delay(3000);
+    }
   }
 
-  void setup()
+  uint8_t* bestBSSID = WiFi.BSSID(bestIndex);
+  int      bestCH    = WiFi.channel(bestIndex);
+
+  Serial.printf("Best: %s CH:%d RSSI:%d\n",
+    WiFi.BSSIDstr(bestIndex).c_str(), bestCH, bestRSSI);
+
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD, bestCH, bestBSSID);
+  WiFi.scanDelete();
+
+  Serial.print("Connecting WiFi");
+  unsigned long t = millis();
+  while (WiFi.status() != WL_CONNECTED)
   {
-    Serial.begin(115200);
-    delay(300);
-    Serial.println("\n=== ESP32 Multi-Sensor IoT Node v2 ===");
-
-    setupPins();
-    setupSensors();
-    scanWiFi(); // <-- lihat Serial Monitor: apakah R.NET muncul & ditandai ">>>"?
-    connectWiFi();
-
-    // Login ke captive portal R.NET (MikroTik Hotspot) sebelum konek cloud
-    ensureHotspotLogin();
-
-    // HiveMQ Cloud - TLS tanpa verifikasi sertifikat (cukup untuk dev/skripsi)
-    // Untuk produksi: gunakan wifiClientSecure.setCACert(hivemq_root_ca)
-    //wifiClientSecure.setInsecure();
-    mqttClient.setServer(MQTT_HOST, MQTT_PORT);
-    mqttClient.setBufferSize(768);
-    mqttClient.setCallback(mqttCallback);
-    connectMQTT();
-
-    setupInfluxDB();
-    setupOTA();
+    if (millis() - t > 15000)
+    {
+      Serial.println("\nTimeout, rescan...");
+      WiFi.disconnect(true);
+      delay(500);
+      connectWiFi();
+      return;
+    }
+    delay(500);
+    Serial.print(".");
   }
 
-  // =====================================================================
-  //  LOOP - PUBLISH
-  // =====================================================================
-  void publishSensorData()
+  Serial.println();
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
+}
+
+//////////////////////////////
+// WiFi Maintain (non-blocking, dipakai di loop())
+//////////////////////////////
+
+unsigned long lastWifiAttempt = 0;
+#define WIFI_RETRY_MS   10000UL
+
+// connectWiFi() sengaja tidak dipanggil lagi dari sini karena isinya blocking
+// (scan + tunggu sampai ketemu). Di runtime cukup WiFi.begin() ulang pakai
+// kredensial tersimpan, non-blocking, dicoba tiap WIFI_RETRY_MS.
+void maintainWiFi()
+{
+  if (WiFi.status() == WL_CONNECTED) return;
+
+  if (millis() - lastWifiAttempt < WIFI_RETRY_MS) return;
+  lastWifiAttempt = millis();
+
+  Serial.println("[WiFi] Terputus, coba reconnect...");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+}
+
+//////////////////////////////
+// MQTT Callback - Kontrol Manual Pompa
+//////////////////////////////
+
+// Payload topic TOPIC_PUMP_CMD (dari app/dashboard):
+//   "ON"   -> paksa pompa nyala (manual), selama tangki tidak kering
+//   "OFF"  -> paksa pompa mati (manual)
+//   "AUTO" -> balik ke kontrol otomatis berdasar sensor
+void mqttCallback(char* topic, byte* payload, unsigned int length)
+{
+  String msg;
+  for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];
+  msg.trim();
+  msg.toUpperCase();
+
+  if (String(topic) != TOPIC_PUMP_CMD) return;
+
+  Serial.printf("[MQTT] %s -> %s\n", topic, msg.c_str());
+
+  if (msg == "ON")
   {
-    // --- SHT3x ---
-    float tAir = 0, hAir = 0;
-    if (sht3xReady)
-    {
-      tAir = sht3x.readTemperature();
-      hAir = sht3x.readHumidity();
-      if (!isnan(tAir)) {
-        tAir = roundf(tAir * 100) / 100.0;
-        mqttClient.publish(TOPIC_AIR_TEMP, String(tAir).c_str(), true);
-      }
-      if (!isnan(hAir)) {
-        hAir = roundf(hAir * 100) / 100.0;
-        mqttClient.publish(TOPIC_HUMIDITY, String(hAir).c_str(), true);
-      }
-    }
-
-    // --- DS18B20 ---
-    float waterTemp = 25.0F;
-    if (ds18b20Ready)
-    {
-      ds18b20.requestTemperatures();
-      float t = ds18b20.getTempCByIndex(0);
-      if (t != DEVICE_DISCONNECTED_C)
-      {
-        waterTemp = roundf(t * 100) / 100.0;
-        mqttClient.publish(TOPIC_WATER_TEMP, String(waterTemp).c_str(), true);
-      }
-    }
-
-    // --- TDS via ADS1115 ---
-    float tds = 0;
-    if (adsReady)
-    {
-      tds = readTdsPpm(waterTemp);
-      tds = roundf(tds * 100) / 100.0;
-      mqttClient.publish(TOPIC_TDS, String(tds).c_str(), true);
-    }
-
-    // --- JSN-SR04T (tidak dipakai) ---
-    // Publish dummy values to keep topics active
-    mqttClient.publish(TOPIC_TANK1, "0", true);
-    mqttClient.publish(TOPIC_TANK2, "0", true);
-    
-    // Publish pump status
-    mqttClient.publish(TOPIC_PUMP_STATUS, pumpState ? "ON" : "OFF", true);
-
-    Serial.println("[MQTT] Data published to individual topics");
-
-    // ---- InfluxDB publish ----
-    sensorData.clearFields();
-    sensorData.clearTags();
-    sensorData.addTag("device", MQTT_CLIENT_ID);
-    sensorData.addTag("lokasi", "SmartBajo");
-
-    if (!isnan(tAir) && tAir != 0) sensorData.addField("suhu_udara", tAir);
-    if (!isnan(hAir) && hAir != 0) sensorData.addField("kelembaban", hAir);
-    if (waterTemp != 25.0F) sensorData.addField("suhu_air", waterTemp);
-    if (adsReady) {
-      sensorData.addField("tds", tds);
-      sensorData.addField("ec", tds * 2.0F); 
-    }
-    sensorData.addField("pompa_aktif", (int)pumpState);
-    sensorData.addField("uptime_s", (long)(millis() / 1000));
-
-    if (influxClient.writePoint(sensorData))
-      Serial.println("[InfluxDB] Kirim OK");
-    else
-      Serial.printf("[InfluxDB] Gagal: %s\n", influxClient.getLastErrorMessage().c_str());
+    pumpManualMode = true;
+    pumpActive = true;
   }
-
-  void loop()
+  else if (msg == "OFF")
   {
-    // OTA harus di-handle setiap iterasi loop
-    ArduinoOTA.handle();
-
-    connectWiFi();
-
-    // Re-login hotspot secara periodik agar sesi tidak expired
-    if (millis() - lastHotspotLogin >= HOTSPOT_RELOGIN_INTERVAL_MS)
-    {
-      Serial.println("[Hotspot] Interval re-login tercapai, refresh sesi...");
-      ensureHotspotLogin();
-    }
-
-    if (!mqttClient.connected())
-      connectMQTT();
-    mqttClient.loop();
-
-    unsigned long now = millis();
-    if (now - lastPublish >= PUBLISH_INTERVAL_MS)
-    {
-      lastPublish = now;
-      publishSensorData();
-    }
+    pumpManualMode = true;
+    pumpActive = false;
   }
+  else if (msg == "AUTO")
+  {
+    pumpManualMode = false;
+  }
+}
+
+//////////////////////////////
+// MQTT Maintain (non-blocking)
+//////////////////////////////
+
+unsigned long lastMqttAttempt = 0;
+#define MQTT_RETRY_MS   5000UL
+
+// Dipanggil tiap loop(). Tidak pernah block -- kalau WiFi/MQTT putus,
+// cuma coba connect ulang tiap MQTT_RETRY_MS, sisanya langsung lewat.
+void mqttMaintain()
+{
+  if (WiFi.status() != WL_CONNECTED) return;
+
+  if (client.connected())
+  {
+    client.loop();
+    return;
+  }
+
+  if (millis() - lastMqttAttempt < MQTT_RETRY_MS) return;
+  lastMqttAttempt = millis();
+
+  String clientId = nodeId;
+  Serial.print("Connecting MQTT...");
+
+  if (client.connect(clientId.c_str()))
+  {
+    Serial.println(" Connected as " + clientId);
+    client.subscribe(TOPIC_PUMP_CMD);
+  }
+  else
+  {
+    Serial.print(" Failed, rc=");
+    Serial.println(client.state());
+  }
+}
+
+//////////////////////////////
+// Sensor Validasi
+//////////////////////////////
+
+// raw == 0 (timeout) atau menyentuh/lewat batas MIN/MAX sensor dianggap error -> diabaikan, pakai nilai valid terakhir.
+float readValidDistance(float raw, float &lastValue)
+{
+  if (raw <= SENSOR_MIN_CM || raw > SENSOR_MAX_CM || raw == 0)
+    return lastValue;
+  lastValue = raw;
+  return raw;
+}
+
+//////////////////////////////
+// JSN-SR04T GPIO Trigger/Echo (mode v3.0, terbukti jalan di ESP8266)
+//////////////////////////////
+
+// Baca jarak (cm) dari sensor trigger/echo. Return 0 kalau timeout,
+// biar ditangani sebagai "invalid" oleh readValidDistance().
+float readUltrasonicCM(int trigPin, int echoPin)
+{
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(20);
+  digitalWrite(trigPin, LOW);
+
+  unsigned long pulse = pulseIn(echoPin, HIGH, 60000UL);   // timeout 60ms
+  if (pulse == 0) return 0.0;
+
+  // Kecepatan suara 343 m/s
+  return pulse * 0.0343F / 2.0F;
+}
+
+//////////////////////////////
+// Klasifikasi Atribut Sensor
+//////////////////////////////
+
+// Kelembaban udara (%RH)
+const char* classifyHumidity(float rh)
+{
+  return (rh < 60.0) ? "Kering" : "Lembab";
+}
+
+// Suhu udara (°C)
+const char* classifyAirTemp(float t)
+{
+  return (t < 28.0) ? "Sejuk" : "Panas";
+}
+
+// Suhu air (°C)
+const char* classifyWaterTemp(float t)
+{
+  if (t < 24.0) return "Dingin";
+  if (t <= 30.0) return "Normal";
+  return "Panas";
+}
+
+// Status tangki: Terisi / Kering (pakai ambang TANK_OFF_CM yang sama dgn kontrol pompa)
+const char* classifyTank1(float cm)
+{
+  return (cm >= TANK_OFF_CM) ? "Kering" : "Terisi";
+}
+
+//////////////////////////////
+// Kontrol Pompa (on/off + hysteresis)
+//////////////////////////////
+
+// Tangki kering (>= TANK_OFF_CM) -> pompa mati mutlak & balik ke mode AUTO,
+// berlaku juga saat sedang manual (safety tidak bisa dioverride dari app).
+// Mode AUTO defaultnya OFF -- yang boleh menyalakan pompa cuma jadwal flush
+// (updateScheduledFlush) atau perintah manual dari app.
+void updatePumpState(float tank1)
+{
+  if (tank1 >= TANK_OFF_CM)
+  {
+    pumpActive = false;
+    pumpManualMode = false;   // paksa balik ke auto, safety tetap jalan
+    return;
+  }
+
+  if (pumpManualMode) return;   // ikuti perintah manual dari app
+
+  pumpActive = false;   // auto normal: default OFF
+}
+
+//////////////////////////////
+// Penjadwalan Flush Harian (mode AUTO)
+//////////////////////////////
+
+// Jamin pompa mengalirkan air minimal FLUSH_DURATION_MS setiap FLUSH_INTERVAL_MS,
+// walau level air sedang di zona "Cukup" yang biasanya tidak memicu pompa nyala.
+// Tidak berjalan saat manual mode, dan otomatis batal/ditunda kalau tangki kering
+// (safety kering tetap prioritas, dijalankan oleh updatePumpState()).
+void updateScheduledFlush(float tank1)
+{
+  if (pumpManualMode)
+  {
+    flushInProgress = false;
+    return;
+  }
+
+  if (tank1 >= TANK_OFF_CM)
+  {
+    // tangki kering saat harusnya flush -> batalkan, coba lagi di siklus interval berikutnya
+    flushInProgress = false;
+    return;
+  }
+
+  if (!flushInProgress)
+  {
+    if (millis() - lastFlushMillis >= FLUSH_INTERVAL_MS)
+    {
+      flushInProgress  = true;
+      flushStartMillis = millis();
+      Serial.println("[FLUSH] Jadwal harian mulai, alirkan air minimal 30 detik...");
+    }
+    return;
+  }
+
+  // Flush sedang berlangsung -> paksa pompa nyala, timpa hasil hysteresis di atas
+  pumpActive = true;
+
+  if (millis() - flushStartMillis >= FLUSH_DURATION_MS)
+  {
+    flushInProgress = false;
+    lastFlushMillis = millis();
+    // Flush = pulsa tetap 30 detik: paksa mati di sini, apa pun kondisi tangki.
+    // Auto normal baru boleh menyalakan lagi di siklus berikutnya (hysteresis biasa).
+    pumpActive = false;
+    Serial.println("[FLUSH] Selesai, pompa dipaksa OFF.");
+  }
+}
+
+//////////////////////////////
+// Setup
+//////////////////////////////
+
+void setup()
+{
+  Serial.begin(115200);
+  delay(500);
+
+  Wire.begin(SDA_PIN, SCL_PIN);
+
+  ds18b20.begin();
+
+  sht31.begin(0x44);
+
+  ads.begin();
+
+  WiFi.mode(WIFI_STA);
+
+  // Nama node diset manual di secrets.h (mis. NODE_NAME "esp32-iot-1"),
+  // supaya gampang dibedain kalau ada beberapa unit ESP32.
+  nodeId = MQTT_CLIENT_ID;
+  Serial.println("[INFO] Node ID: " + nodeId);
+
+  WiFi.setHostname(nodeId.c_str());
+
+  connectWiFi();
+
+  client.setServer(MQTT_HOST, MQTT_PORT);
+  client.setCallback(mqttCallback);
+
+  ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RES);
+  ledcAttachPin(PUMP_PIN, PWM_CHANNEL);
+  ledcWrite(PWM_CHANNEL, 0);
+
+  // Setup pin trigger/echo JSN-SR04T (sensor tangki)
+  pinMode(TRIG1, OUTPUT);
+  pinMode(ECHO1, INPUT);
+  digitalWrite(TRIG1, LOW);
+
+  Serial.println("[INFO] Setup selesai, mulai loop utama.\n");
+}
+
+//////////////////////////////
+// Loop
+//////////////////////////////
+
+void loop()
+{
+  // Non-blocking: sensor & pompa di bawah tetap jalan walau WiFi/MQTT putus.
+  maintainWiFi();
+  mqttMaintain();
+
+  if (millis() - lastPublish > 5000)
+  {
+    lastPublish = millis();
+
+    ///////////////////////////
+    // DS18B20
+    ///////////////////////////
+
+    ds18b20.requestTemperatures();
+    float waterTemp = ds18b20.getTempCByIndex(0);
+
+    ///////////////////////////
+    // SHT31
+    ///////////////////////////
+
+    float airTemp  = sht31.readTemperature();
+    float humidity = sht31.readHumidity();
+
+    ///////////////////////////
+    // Ultrasonik JSN-SR04T Trigger/Echo (dengan validasi)
+    ///////////////////////////
+
+    float rawTank1 = readUltrasonicCM(TRIG1, ECHO1);
+    float tank1 = readValidDistance(rawTank1, lastTank1);
+
+    ///////////////////////////
+    // TDS (via ADS1115 A0)
+    ///////////////////////////
+
+    int16_t raw     = ads.readADC_SingleEnded(0);
+    float   voltage = ads.computeVolts(raw);
+    float   tds     = voltage * 500.0;
+
+    ///////////////////////////
+    // Kontrol Pompa (on/off + hysteresis)
+    ///////////////////////////
+
+    updatePumpState(tank1);
+    updateScheduledFlush(tank1);
+    int pumpSpeed = pumpActive ? PUMP_SPEED_ON : 0;
+    ledcWrite(PWM_CHANNEL, pumpSpeed);
+    Serial.printf("[PUMP] active=%d speed=%d (tank1=%.1f)\n", pumpActive, pumpSpeed, tank1);
+
+    ///////////////////////////
+    // Publish per Topic
+    ///////////////////////////
+
+    char buf[32];
+
+    snprintf(buf, sizeof(buf), "%.2f", waterTemp);
+    client.publish(TOPIC_WATER_TEMP, buf);
+    Serial.printf("[%s] %s\n", TOPIC_WATER_TEMP, buf);
+
+    snprintf(buf, sizeof(buf), "%.2f", tds);
+    client.publish(TOPIC_TDS, buf);
+    Serial.printf("[%s] %s\n", TOPIC_TDS, buf);
+
+    snprintf(buf, sizeof(buf), "%.2f", airTemp);
+    client.publish(TOPIC_AIR_TEMP, buf);
+    Serial.printf("[%s] %s\n", TOPIC_AIR_TEMP, buf);
+
+    snprintf(buf, sizeof(buf), "%.2f", humidity);
+    client.publish(TOPIC_HUMIDITY, buf);
+    Serial.printf("[%s] %s\n", TOPIC_HUMIDITY, buf);
+
+    ///////////////////////////
+    // Publish Atribut/Status
+    ///////////////////////////
+
+    const char* waterStatus = classifyWaterTemp(waterTemp);
+    client.publish(TOPIC_WATER_TEMP_STATUS, waterStatus);
+    Serial.printf("[%s] %s\n", TOPIC_WATER_TEMP_STATUS, waterStatus);
+
+    const char* airStatus = classifyAirTemp(airTemp);
+    client.publish(TOPIC_AIR_TEMP_STATUS, airStatus);
+    Serial.printf("[%s] %s\n", TOPIC_AIR_TEMP_STATUS, airStatus);
+
+    const char* humidityStatus = classifyHumidity(humidity);
+    client.publish(TOPIC_HUMIDITY_STATUS, humidityStatus);
+    Serial.printf("[%s] %s\n", TOPIC_HUMIDITY_STATUS, humidityStatus);
+
+    const char* tank1Status = classifyTank1(tank1);
+    client.publish(TOPIC_TANK1_STATUS, tank1Status);
+    Serial.printf("[%s] %s\n", TOPIC_TANK1_STATUS, tank1Status);
+
+    client.publish(TOPIC_PUMP_STATUS, pumpActive ? "ON" : "OFF");
+    Serial.printf("[%s] %s\n", TOPIC_PUMP_STATUS, pumpActive ? "ON" : "OFF");
+
+    client.publish(TOPIC_PUMP_MODE, pumpManualMode ? "MANUAL" : "AUTO");
+    Serial.printf("[%s] %s\n", TOPIC_PUMP_MODE, pumpManualMode ? "MANUAL" : "AUTO");
+  }
+}
