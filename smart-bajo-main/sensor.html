@@ -480,30 +480,6 @@
   }
 
   async function updateGauges() { /* Disabled dummy */ }
-    } catch (e) {
-      console.warn("Using mock data as API is not available", e);
-      ec = rand(1.8, 3.2);
-      temp = rand(26, 32);
-      tds = rand(1100, 1800, 0);
-      level = rand(18, 28, 0);
-      airTemp = rand(29, 35);
-      humid = rand(60, 90, 0);
-    }
-
-    document.getElementById('valEC').textContent = ec;
-    document.getElementById('valTemp').textContent = temp;
-    document.getElementById('valTDS').textContent = Math.round(tds);
-    document.getElementById('valLevel').textContent = Math.round(level);
-    document.getElementById('valAirTemp').textContent = airTemp;
-    document.getElementById('valHumid').textContent = Math.round(humid);
-
-    setGauge('gaugeEC', ec, 0, 5);
-    setGauge('gaugeTemp', temp, 0, 45);
-    setGauge('gaugeTDS', tds, 0, 3000);
-    setGauge('gaugeLevel', level, 0, 50);
-    setGauge('gaugeAirTemp', airTemp, 0, 50);
-    setGauge('gaugeHumid', humid, 0, 100);
-  }
 
   // ============================================
   // SENSOR CHART
@@ -602,8 +578,6 @@
   // HISTORY TABLE
   // ============================================
   function renderHistory() { document.getElementById("historyBody").innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;\">Menunggu data...</td></tr>"; }
-    tbody.innerHTML = rows.join('');
-  }
 
   // Init
   updateGauges();
