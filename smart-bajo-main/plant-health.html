@@ -271,12 +271,17 @@
 
     <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo" onclick="window.location='index.html'" style="cursor: pointer;">
-      <img src="assets/images/logo.png" alt="Smart Bajo" style="height: 75px; width: auto; margin-right: 12px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(0,212,255,0.4));">
-      <div class="sidebar-logo-text">
-        <div class="sidebar-logo-name">SMART-BAJO</div>
-        <div class="sidebar-logo-sub">AI-IoT Monitoring</div>
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-brand" onclick="window.location='index.html'">
+        <img src="assets/images/logo.png" alt="Smart Bajo" style="height: 75px; width: auto; margin-right: 12px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(0,212,255,0.4));">
+        <div class="sidebar-logo-text">
+          <div class="sidebar-logo-name">SMART-BAJO</div>
+          <div class="sidebar-logo-sub">AI-IoT Monitoring</div>
+        </div>
       </div>
+      <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('expanded')">
+        <i data-lucide="menu"></i>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
