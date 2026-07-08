@@ -870,3 +870,61 @@ a:hover { color: var(--color-primary-dark); }
 [data-theme="dark"] .form-input:focus {
   background: rgba(0, 0, 0, 0.4);
 }
+
+/* ============================================
+   MOBILE RESPONSIVENESS
+   ============================================ */
+@media (max-width: 768px) {
+  /* Layout adjustments */
+  .app-shell { flex-direction: column; }
+  
+  /* Sidebar becomes a horizontal scrollable top bar on mobile */
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .sidebar-nav {
+    display: flex;
+    overflow-x: auto;
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+  }
+  .sidebar-item { flex: 0 0 auto; margin-bottom: 0; }
+  .sidebar-footer { display: none; }
+  .main-content { margin-left: 0; }
+  
+  /* Landing page overrides */
+  .hero { 
+    grid-template-columns: 1fr; 
+    padding-top: 100px; 
+    text-align: center; 
+    gap: 32px;
+  }
+  .hero-content h1 { font-size: 32px; }
+  .hero-buttons { justify-content: center; flex-wrap: wrap; }
+  .hero-tags { justify-content: center; flex-wrap: wrap; }
+  .features-grid { grid-template-columns: 1fr !important; }
+  .mockup-window { transform: scale(1); }
+  .mockup-row-1 { grid-template-columns: 1fr; }
+  .mockup-body > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; } /* NPK chart */
+  
+  /* Navbar */
+  .navbar { padding: 0 5%; }
+  .nav-links { display: none; } /* Hide links on mobile for simplicity */
+  .nav-brand { font-size: 16px; }
+  .nav-brand img { height: 48px !important; }
+  
+  /* Utility Grids */
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  
+  /* Header */
+  .app-header { padding: 0 var(--space-md); }
+  .header-actions .btn-icon:not(:last-child) { display: none; }
+  
+  /* Content padding */
+  .page-content { padding: var(--space-md); }
+  .card { padding: var(--space-md); }
+}
