@@ -526,7 +526,7 @@
 </section>
 
 <!-- Profil Tim Singkat -->
-<section style="padding: 80px 5%; background: var(--color-bg-secondary); border-top: 1px solid var(--color-border);">
+<section id="profil" style="padding: 80px 5%; background: var(--color-bg-secondary); border-top: 1px solid var(--color-border);">
   <div style="max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 48px; flex-wrap: wrap;">
     <div style="flex: 1; min-width: 300px;">
       <div style="display: inline-block; padding: 6px 12px; background: rgba(0, 102, 255, 0.1); color: var(--color-primary); border-radius: 20px; font-weight: 600; font-size: 14px; margin-bottom: 16px;">Profil Penggerak</div>
@@ -640,7 +640,9 @@
         const href = link.getAttribute('href');
         if (current === 'beranda' && href === 'index.html') {
           link.classList.add('active');
-        } else if (current && href.includes('#' + current)) {
+        } else if (current === 'profil' && href === 'profile.html') {
+          link.classList.add('active');
+        } else if (current && href !== 'index.html' && href !== 'profile.html' && href.includes('#' + current)) {
           link.classList.add('active');
         } else if (!current && href === 'index.html') {
           link.classList.add('active');
