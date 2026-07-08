@@ -569,8 +569,8 @@
   for (let i = 29; i >= 0; i--) {
     const t = new Date(Date.now() - i * 60000);
     labels.push(t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
-    ecData.push(0);
-    tempData.push(0);
+    ecData.push(rand(2.0, 2.5, 2));
+    tempData.push(rand(27, 29, 1));
   }
 
   const chartCtx = document.getElementById('mainChart').getContext('2d');
@@ -630,11 +630,36 @@
   setInterval(updateChartsRealtime, 5000);
 
   function refreshData() {}
-  function setChartRange(range) {}
+  function setChartRange(range) {} // initMQTT(); // Disabled for dummy mode
 
   renderRakitList();
   renderActivityLog();
-  initMQTT();
+
+  // Dummy Data Generator
+  let currentData = { ec: rand(2.0, 2.5, 2), temp: rand(27, 29, 1), tds: rand(1300, 1500, 0), bme: rand(28, 30, 1), humid: rand(70, 80, 1) };
+  updateSensorDOM();
+
+  setInterval(() => {
+    currentData.ec = rand(2.0, 2.5, 2);
+    currentData.temp = rand(27, 29, 1);
+    currentData.tds = rand(1300, 1500, 0);
+    currentData.bme = rand(28, 30, 1);
+    currentData.humid = rand(70, 80, 1);
+    
+    updateSensorDOM();
+    
+    // update chart
+    const now = new Date();
+    labels.push(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+    ecData.push(currentData.ec);
+    tempData.push(currentData.temp);
+    
+    if(labels.length > 30) {
+      labels.shift(); ecData.shift(); tempData.shift();
+    }
+    mainChart.update();
+  }, 3000);
+  // initMQTT();
 </script>
 <script>
   // Generate abundant particles
