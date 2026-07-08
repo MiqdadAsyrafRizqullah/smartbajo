@@ -1052,8 +1052,8 @@ a:hover { color: var(--color-primary-dark); }
     font-size: 14px;
   }
   
-  .nav-brand { font-size: 12px !important; gap: 4px; }
-  .nav-brand img { height: 32px !important; transform: scale(1.1) !important; margin-right: 0 !important; }
+  .nav-brand { font-size: 16px !important; gap: 8px; font-weight: 700; }
+  .nav-brand img { height: 42px !important; transform: scale(1.2) !important; margin-right: 0 !important; }
   .nav-cta { display: flex; align-items: center; }
   .nav-cta > a.btn { display: none !important; } /* Hard hide desktop button */
   
