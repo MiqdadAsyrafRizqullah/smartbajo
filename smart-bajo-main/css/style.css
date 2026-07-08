@@ -876,12 +876,14 @@ a:hover { color: var(--color-primary-dark); }
 
 /* Hamburger button hidden on desktop */
 .mobile-menu-btn { display: none; }
+.mobile-close-btn { display: none; }
+.mobile-only-btn { display: none !important; }
 
 /* ============================================
    MOBILE RESPONSIVENESS
    ============================================ */
 @media (max-width: 768px) {
-  /* Hamburger button visible */
+  /* Hamburger button visible and larger */
   .mobile-menu-btn {
     display: flex;
     align-items: center;
@@ -889,9 +891,29 @@ a:hover { color: var(--color-primary-dark); }
     background: transparent;
     border: 1px solid var(--color-border);
     color: var(--color-text-primary);
-    padding: 6px;
+    padding: 8px;
     border-radius: var(--radius-sm);
     cursor: pointer;
+  }
+  .mobile-menu-btn svg { width: 28px !important; height: 28px !important; }
+  
+  .mobile-close-btn {
+    display: flex;
+    align-self: flex-end;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    padding: 8px;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  .mobile-close-btn svg { width: 28px; height: 28px; }
+  
+  .mobile-only-btn {
+    display: flex !important;
+    margin-top: 16px;
+    justify-content: center;
+    width: 100%;
   }
   
   /* Layout adjustments */
@@ -918,19 +940,27 @@ a:hover { color: var(--color-primary-dark); }
     cursor: pointer;
   }
   
+  /* Sidebar Sliding from Left */
   .sidebar-nav {
-    display: none; /* hidden by default */
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 280px;
+    height: 100vh;
+    background: var(--color-bg-primary);
     flex-direction: column;
-    padding: 0;
+    padding: 16px;
     gap: 0;
     white-space: normal;
     border-top: none;
-    overflow-x: hidden;
+    border-right: 1px solid var(--color-border);
+    box-shadow: 4px 0 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex !important;
   }
   .sidebar.expanded .sidebar-nav {
-    display: flex;
-    border-top: 1px solid var(--color-border);
-    padding: 12px 16px;
+    left: 0;
   }
   
   .sidebar-section-label { display: block; padding: 12px 8px 8px; }
@@ -989,30 +1019,35 @@ a:hover { color: var(--color-primary-dark); }
   /* Navbar */
   .navbar { padding: 0 16px; height: 70px; justify-content: space-between; position: relative; }
   
+  /* Navbar sliding from left */
   .nav-links {
-    display: none;
-    position: absolute;
-    top: 70px;
-    left: 0;
-    width: 100%;
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 280px;
+    height: 100vh;
     background: var(--color-bg-primary);
     flex-direction: column;
     padding: 16px;
-    border-bottom: 1px solid var(--color-border);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    z-index: 999;
+    border-bottom: none;
+    border-right: 1px solid var(--color-border);
+    box-shadow: 4px 0 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex !important;
   }
   .nav-links.active {
-    display: flex;
+    left: 0;
   }
   .nav-links a {
     margin: 8px 0;
+    font-size: 16px;
   }
   
   .nav-brand { font-size: 14px !important; }
   .nav-brand img { height: 40px !important; }
   .nav-cta { display: flex; align-items: center; }
-  .nav-cta .btn { padding: 8px 12px; font-size: 13px; }
+  .nav-cta .btn:not(.mobile-only-btn) { display: none; } /* Hide desktop button */
   
   /* Utility Grids */
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr !important; }

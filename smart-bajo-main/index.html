@@ -320,12 +320,16 @@
     <img src="assets/images/logo.png" alt="Smart Bajo Logo" style="height: 64px; width: auto; object-fit: contain; transform: scale(1.4); margin-right: -4px;"> SMART BAJO
   </a>
   <div class="nav-links">
+    <button class="mobile-close-btn" onclick="document.querySelector('.nav-links').classList.remove('active')">
+      <i data-lucide="x"></i>
+    </button>
     <a href="index.html" class="active">Beranda</a>
     <a href="index.html#fitur">Fitur AI-IoT</a>
     <a href="index.html#solusi">Solusi Pesisir</a>
     <a href="index.html#teknologi">Teknologi</a>
     <a href="#dokumentasi">Dokumentasi</a>
     <a href="profile.html">Profil Tim</a>
+    <a href="dashboard.html" class="btn btn-primary mobile-only-btn" style="gap: 8px;">Buka Dashboard <i data-lucide="arrow-right" style="width:16px;"></i></a>
   </div>
   <div class="nav-cta">
     <a href="dashboard.html" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">Buka Dashboard <i data-lucide="arrow-right" style="width:16px;"></i></a>
