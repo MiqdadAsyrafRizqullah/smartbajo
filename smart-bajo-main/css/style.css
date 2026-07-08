@@ -257,6 +257,13 @@ a:hover { color: var(--color-primary-dark); }
   background: rgba(0,0,0,0.02);
 }
 
+.sidebar-logo-brand {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 12px;
+}
+
 .sidebar-logo-icon {
   width: 32px;
   height: 32px;
@@ -692,12 +699,14 @@ a:hover { color: var(--color-primary-dark); }
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg-primary);
+  white-space: nowrap;
 }
 .data-table td {
   font-size: 14px;
   color: var(--color-text-secondary);
   padding: 14px 16px;
   border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
 }
 .data-table tr:hover td {
   background: var(--color-bg-tertiary);
@@ -996,7 +1005,7 @@ a:hover { color: var(--color-primary-dark); }
   }
   
   /* Dashboard Grids */
-  .stats-grid, .sensor-grid, .charts-row, .bottom-row {
+  .stats-grid, .sensor-grid, .charts-row, .bottom-row, .gauges-grid {
     grid-template-columns: 1fr !important;
   }
   .chart-container { height: 200px; }
